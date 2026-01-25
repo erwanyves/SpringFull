@@ -1,4 +1,4 @@
-The objective of this macro is to design cylindrical compression springs.
+The objective of this macro is to design cylindrical compression springs with FreeCAD.
 
 Available features:
     Calculation based on mean, external, or internal diameter
