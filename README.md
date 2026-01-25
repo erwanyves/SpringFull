@@ -13,3 +13,9 @@ Available features:
         At user-defined height
         At user-defined load
     Simplified mode (enclosing tube) to save memory
+    For now, 5 languages, to be checked:
+    - en
+    -fr
+    -de
+    -it
+    -es
