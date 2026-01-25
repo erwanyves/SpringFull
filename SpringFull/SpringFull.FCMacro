@@ -1,0 +1,689 @@
+# -*- coding: utf-8 -*-
+"""
+SpringFull.FCMacro - Macro FreeCAD pour ressorts de compression
+
+REFONTE COMPLÈTE:
+- Toutes les données stockées dans les propriétés du Body FreeCAD
+- Plus de dépendance aux fichiers CSV/ODS/LibreOffice
+- Calculateur intégré (bouton "Recalculer")
+- Vérification et création automatique des propriétés manquantes
+
+Version: 1.4.0 - Propriétés en lecture seule regroupées dans "Spring Params"
+"""
+
+__author__ = "Yves Guillou"
+__licence__ = "GPL"
+
+import os
+import sys
+import importlib
+import FreeCAD as App
+import FreeCADGui as Gui
+
+# Import compatible PySide2/PySide6
+try:
+    from PySide6 import QtCore
+    from PySide6 import QtWidgets as QtGui  # Alias pour compatibilité
+except ImportError:
+    from PySide import QtGui, QtCore
+
+# =============================================================================
+# RECHARGEMENT DES MODULES (pour développement et mises à jour)
+# =============================================================================
+# Force le rechargement des modules SpringFull à chaque exécution
+# Cela garantit que les modifications sont prises en compte sans redémarrer FreeCAD
+
+def reload_springfull_modules():
+    """Recharge tous les modules SpringFull pour prendre en compte les modifications."""
+    modules_to_reload = [
+        'SpringFull.SpringFullI18nModule',
+        'SpringFull.SpringFullHelixModule',
+        'SpringFull.SpringFullDataModule',
+        'SpringFull.SpringFullModule',
+        'SpringFull.SpringFullDialogsModule',
+        'SpringFull.SpringFullCalculatorModule',
+    ]
+    
+    for module_name in modules_to_reload:
+        if module_name in sys.modules:
+            try:
+                importlib.reload(sys.modules[module_name])
+            except Exception as e:
+                pass  # Ignorer les erreurs de rechargement
+
+# Recharger les modules au début de chaque exécution
+reload_springfull_modules()
+
+# Import des modules SpringFull (après rechargement)
+from SpringFull.SpringFullDataModule import DataSet, ensureSpringProperties, isSpringBody, SPRING_PROPERTIES
+from SpringFull.SpringFullModule import Spring
+from SpringFull.SpringFullDialogsModule import (
+    configuration, springUpdateDialog, selectSpringDialog,
+    dialogInitialSaveAlert, dialogMissingProperties, showSuccessMessage,
+    showProgressDialog
+)
+from SpringFull.SpringFullCalculatorModule import SpringCalculatorDialog
+from SpringFull.SpringFullI18nModule import show_language_dialog, tr
+
+import time
+
+
+# =============================================================================
+# FONCTIONS DE SAUVEGARDE ROBUSTE
+# =============================================================================
+
+def robust_save(doc, max_retries=3, retry_delay=0.5):
+    """
+    Sauvegarde le document avec retry en cas d'erreur.
+    
+    Utile pour les fichiers sur des systèmes de synchronisation cloud
+    (Dropbox, OneDrive, Google Drive) qui peuvent verrouiller temporairement
+    les fichiers.
+    
+    Args:
+        doc: Document FreeCAD à sauvegarder
+        max_retries: Nombre maximum de tentatives (défaut: 3)
+        retry_delay: Délai entre les tentatives en secondes (défaut: 0.5)
+        
+    Returns:
+        bool: True si sauvegarde réussie, False sinon
+    """
+    if not doc:
+        return False
+    
+    last_error = None
+    
+    for attempt in range(max_retries):
+        try:
+            doc.save()
+            if attempt > 0:
+                App.Console.PrintMessage(f"[SpringFull] Sauvegarde reussie apres {attempt + 1} tentatives\n")
+            return True
+        except OSError as e:
+            last_error = e
+            if attempt < max_retries - 1:
+                # Attendre avant de réessayer
+                time.sleep(retry_delay)
+                # Augmenter le délai pour la prochaine tentative
+                retry_delay *= 1.5
+            else:
+                App.Console.PrintWarning(f"[SpringFull] Echec sauvegarde apres {max_retries} tentatives: {str(e)}\n")
+        except Exception as e:
+            last_error = e
+            App.Console.PrintWarning(f"[SpringFull] Erreur sauvegarde inattendue: {str(e)}\n")
+            break
+    
+    # Si toutes les tentatives ont échoué, tenter une sauvegarde avec un nom temporaire
+    if last_error:
+        try:
+            # Sauvegarder sous un nom temporaire
+            original_path = doc.FileName
+            if original_path:
+                temp_path = original_path + ".backup"
+                doc.saveAs(temp_path)
+                App.Console.PrintMessage(f"[SpringFull] Sauvegarde de secours: {temp_path}\n")
+                # Tenter de renommer
+                try:
+                    import shutil
+                    shutil.move(temp_path, original_path)
+                    App.Console.PrintMessage("[SpringFull] Fichier restaure avec succes\n")
+                    return True
+                except:
+                    App.Console.PrintWarning(f"[SpringFull] Fichier de secours cree: {temp_path}\n")
+                    return True
+        except:
+            pass
+    
+    return False
+
+
+# =============================================================================
+# FONCTIONS UTILITAIRES
+# =============================================================================
+
+def getDataSnapshot(data):
+    """
+    Capture un snapshot des paramètres clés du ressort pour comparaison.
+    Note: displayHeight n'est pas inclus car c'est une valeur dérivée.
+    
+    Args:
+        data: DataSet object
+        
+    Returns:
+        dict: Dictionnaire des paramètres clés
+    """
+    return {
+        # Géométrie
+        'wireDiameter': getattr(data, 'wireDiameter', 0),
+        'meanDiameter': getattr(data, 'meanDiameter', 0),
+        'activeTurnsQty': getattr(data, 'activeTurnsQty', 0),
+        'deadTurnsQty': getattr(data, 'deadTurnsQty', 0),
+        # Hauteurs sources (pas displayHeight qui est dérivé)
+        'freeLength': getattr(data, 'freeLength', 0),
+        'onLoadHight': getattr(data, 'onLoadHight', 0),
+        'minHeight': getattr(data, 'minHeight', 0),
+        # Type
+        'extremeTurns': getattr(data, 'extremeTurns', ''),
+        'grinded': getattr(data, 'grinded', False),
+        'leftHanded': getattr(data, 'leftHanded', False),
+        # Matériau
+        'material': getattr(data, 'material', ''),
+    }
+
+
+def hasDataChanged(old_snapshot, new_snapshot, tolerance=0.001):
+    """
+    Compare deux snapshots pour détecter les modifications.
+    
+    Args:
+        old_snapshot: Snapshot avant modification
+        new_snapshot: Snapshot après modification
+        tolerance: Tolérance pour comparaison des floats
+        
+    Returns:
+        bool: True si des modifications ont été détectées
+    """
+    for key in old_snapshot:
+        old_val = old_snapshot[key]
+        new_val = new_snapshot.get(key, old_val)
+        
+        if isinstance(old_val, float):
+            if abs(old_val - new_val) > tolerance:
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.param_modified').format(key=key, old=old_val, new=new_val)}\n")
+                return True
+        elif old_val != new_val:
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.param_modified').format(key=key, old=old_val, new=new_val)}\n")
+            return True
+    
+    return False
+
+
+def refresh():
+    """Rafraîchit la vue et le document"""
+    Gui.Selection.clearSelection()
+    doc = App.activeDocument()
+    if doc:
+        doc.recompute(None, True, True)
+
+
+def findSpringBodies():
+    """
+    Trouve tous les Bodies Spring dans le document actif.
+    
+    Returns:
+        list: Liste des Bodies Spring
+    """
+    springs = []
+    doc = App.ActiveDocument
+    if not doc:
+        return springs
+    
+    for obj in doc.Objects:
+        if obj.TypeId == 'PartDesign::Body':
+            if isSpringBody(obj):
+                springs.append(obj)
+    
+    return springs
+
+
+def findSpringLinks(springs):
+    """
+    Trouve tous les liens (App::Link) pointant vers des ressorts.
+    
+    Args:
+        springs: Liste des Bodies Spring
+        
+    Returns:
+        dict: {body: [link1, link2, ...]} pour chaque ressort
+    """
+    links = {s: [] for s in springs}
+    doc = App.ActiveDocument
+    if not doc:
+        return links
+    
+    for obj in doc.Objects:
+        if obj.TypeId == 'App::Link':
+            # Vérifier si le lien pointe vers un ressort
+            linked = getattr(obj, 'LinkedObject', None)
+            if linked and linked in springs:
+                links[linked].append(obj)
+    
+    return links
+
+
+def cleanOrphanSpringObjects(doc, piece):
+    """
+    Supprime les objets orphelins du ressort (hors Bodies).
+    
+    Returns:
+        int: Nombre d'orphelins supprimés
+    """
+    orphan_patterns = ['MainHelix', 'LowerHelix', 'UpperHelix', 'MainSketch',
+                       'UpperPlane', 'LowerPlane', 'Local_Top', 'Local_Bottom',
+                       'UpperPlaneSketch', 'LowerPlaneSketch', 'TubeSketch',
+                       'SimplifiedSpringTube', 'EndFillets']
+    
+    all_spring_bodies = []
+    for obj in doc.Objects:
+        if obj.TypeId == 'PartDesign::Body':
+            if isSpringBody(obj) or 'Spring' in obj.Name:
+                all_spring_bodies.append(obj)
+    
+    protected_objects = set()
+    for body in all_spring_bodies:
+        for obj in body.Group:
+            protected_objects.add(obj)
+    
+    orphans_removed = 0
+    objects_to_check = list(doc.Objects)
+    
+    for obj in objects_to_check:
+        if obj in protected_objects:
+            continue
+        if obj.TypeId == 'PartDesign::Body':
+            continue
+        if obj.TypeId == 'App::Origin' or obj.TypeId.startswith('App::Origin'):
+            continue
+        
+        for pattern in orphan_patterns:
+            if obj.Name.startswith(pattern):
+                try:
+                    doc.removeObject(obj.Name)
+                    orphans_removed += 1
+                except:
+                    pass
+                break
+    
+    return orphans_removed
+
+
+def createNewSpringBody(doc, body_name="Spring"):
+    """
+    Crée un nouveau Body Spring avec toutes les propriétés initialisées.
+    
+    Args:
+        doc: Document FreeCAD
+        body_name: Nom du Body
+        
+    Returns:
+        Body: Le nouveau Body créé
+    """
+    # Créer le Body
+    piece = doc.addObject('PartDesign::Body', body_name)
+    
+    # Initialiser les propriétés avec valeurs par défaut
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.new_spring').format(name=body_name)}\n")
+    missing = ensureSpringProperties(piece)
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.props_initialized').format(count=missing)}\n")
+    
+    return piece
+
+
+def reconstructSpring(piece, data):
+    """
+    Reconstruit le ressort avec les nouvelles données.
+    
+    Args:
+        piece: Body FreeCAD
+        data: DataSet avec les données
+    """
+    doc = App.ActiveDocument
+    
+    # Sauvegarder le Label
+    saved_label = piece.Label
+    
+    # Afficher dialogue de progression si mode détaillé
+    progress_dialog = None
+    is_detailed = not getattr(data, 'simplified', True)
+    
+    if is_detailed:
+        progress_dialog = showProgressDialog(
+            title=tr("progress.title"),
+            message=tr("progress.message_named").format(name=saved_label)
+        )
+    
+    try:
+        # Supprimer les features existantes (sauf Origin et LCS)
+        objects_to_remove = [
+            obj for obj in piece.Group
+            if obj.TypeId != 'App::Origin'
+            and obj.TypeId != 'PartDesign::CoordinateSystem'
+        ]
+        
+        for obj in objects_to_remove:
+            try:
+                piece.removeObject(obj)
+                doc.removeObject(obj.Name)
+            except:
+                pass
+        
+        # Nettoyer les orphelins
+        cleanOrphanSpringObjects(doc, piece)
+        doc.recompute()
+        
+        # Recréer le ressort (le matériau est appliqué dans Spring.__init__)
+        data.initParameters(piece)
+        spring = Spring(data, piece, progress_dialog=progress_dialog)
+        
+        # Mettre à jour la configuration (propriété en lecture seule)
+        if hasattr(piece, 'configuration'):
+            try:
+                piece.setEditorMode('configuration', 0)  # Déverrouiller
+                piece.configuration = data.configuration
+                piece.setEditorMode('configuration', 1)  # Reverrouiller
+            except:
+                pass
+        
+        # Sauvegarder les données dans le Body (gère les propriétés en lecture seule)
+        data.saveToBody()
+        
+        doc.recompute()
+        
+        App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_rebuilt').format(name=saved_label)}\n")
+    
+    finally:
+        # Fermer le dialogue de progression
+        if progress_dialog:
+            progress_dialog.finish()
+            progress_dialog.close()
+
+
+def openCalculator(piece, data, on_complete_callback=None):
+    """
+    Ouvre le calculateur de ressort.
+    
+    Args:
+        piece: Body FreeCAD
+        data: DataSet
+        on_complete_callback: Fonction appelée après fermeture avec modifications
+    """
+    # Créer le dialogue avec le Body associé
+    dialog = SpringCalculatorDialog(
+        Gui.getMainWindow(),
+        spring_body=piece
+    )
+    
+    result = dialog.exec()
+    
+    if result == QtGui.QDialog.Accepted and dialog.has_changes():
+        # Recharger les données depuis le Body (qui a été modifié par le calculateur)
+        data.loadFromBody()
+        
+        App.Console.PrintMessage(f"[SpringFull] {tr('console.params_modified_calc')}\n")
+        
+        if on_complete_callback:
+            on_complete_callback()
+        
+        return True
+    
+    return False
+
+
+def getSelectedSpringBody():
+    """
+    Vérifie si un ressort (ou un élément d'un ressort) est sélectionné.
+    
+    Returns:
+        Body ou None: Le Body Spring sélectionné ou None
+    """
+    selection = Gui.Selection.getSelection()
+    if not selection:
+        return None
+    
+    for obj in selection:
+        # Si c'est directement un Body Spring
+        if obj.TypeId == 'PartDesign::Body' and isSpringBody(obj):
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_selected').format(name=obj.Label)}\n")
+            return obj
+        
+        # Si c'est un élément à l'intérieur d'un Body
+        # Chercher le Body parent
+        parent = None
+        
+        # Méthode 1: Attribut _Body (pour les features PartDesign)
+        if hasattr(obj, '_Body') and obj._Body:
+            parent = obj._Body
+        
+        # Méthode 2: Chercher dans les InList
+        if not parent:
+            for p in obj.InList:
+                if p.TypeId == 'PartDesign::Body':
+                    parent = p
+                    break
+        
+        # Méthode 3: Pour les esquisses et autres
+        if not parent and hasattr(obj, 'getParentGeoFeatureGroup'):
+            try:
+                parent = obj.getParentGeoFeatureGroup()
+            except:
+                pass
+        
+        # Vérifier si le parent est un ressort
+        if parent and parent.TypeId == 'PartDesign::Body' and isSpringBody(parent):
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_element_selected').format(name=parent.Label)}\n")
+            return parent
+        
+        # Méthode 4: Si c'est un App::Link vers un ressort
+        if obj.TypeId == 'App::Link':
+            linked = getattr(obj, 'LinkedObject', None)
+            if linked and linked.TypeId == 'PartDesign::Body' and isSpringBody(linked):
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_link_selected').format(name=linked.Label)}\n")
+                return linked
+    
+    return None
+
+
+# =============================================================================
+# FONCTION PRINCIPALE
+# =============================================================================
+
+def main():
+    """Point d'entrée principal de la macro."""
+    
+    App.Console.PrintMessage("\n" + tr("console.separator") + "\n")
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.starting')}\n")
+    App.Console.PrintMessage(tr("console.separator") + "\n")
+    
+    # Dialogue de sélection de langue (mode développement)
+    if not show_language_dialog():
+        App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_language')}\n")
+        return
+    
+    # Vérifier/créer le document
+    doc = App.ActiveDocument
+    if not doc:
+        App.Console.PrintMessage(f"[SpringFull] {tr('console.new_document')}\n")
+        doc = App.newDocument("Spring")
+        App.setActiveDocument(doc.Name)
+        Gui.ActiveDocument = Gui.getDocument(doc.Name)
+        Gui.activeDocument().activeView().viewDefaultOrientation()
+    
+    # Vérifier si le document est sauvegardé
+    if not doc.FileName:
+        dialogInitialSaveAlert()
+        Gui.SendMsgToActiveView("SaveAs")
+        if not doc.FileName:
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_not_saved')}\n")
+            return
+    
+    # Vérifier si un ressort est déjà sélectionné
+    preselected_spring = getSelectedSpringBody()
+    
+    # Chercher les ressorts existants
+    springs = findSpringBodies()
+    links = findSpringLinks(springs)
+    total_links = sum(len(v) for v in links.values())
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.springs_found').format(springs=len(springs), links=total_links)}\n")
+    
+    # Sélection du ressort
+    piece = None
+    is_new = False
+    
+    if preselected_spring:
+        # Un ressort était sélectionné - l'utiliser directement
+        piece = preselected_spring
+        is_new = False
+        App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_preselected').format(name=piece.Label)}\n")
+        # Vérifier/créer les propriétés manquantes
+        missing = ensureSpringProperties(piece)
+        if missing > 0:
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.props_added').format(count=missing, name=piece.Label)}\n")
+            dialogMissingProperties(missing, piece.Label)
+    elif len(springs) == 0:
+        # Aucun ressort - créer nouveau
+        is_new = True
+        piece = createNewSpringBody(doc)
+    else:
+        # Proposer sélection (avec les liens)
+        selected, is_new = selectSpringDialog(springs, links)
+        
+        if selected is None and is_new is None:
+            # Annulé
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_by_user')}\n")
+            return
+        
+        if is_new:
+            # Créer nouveau avec nom unique
+            base_name = "Spring"
+            counter = 1
+            while doc.getObject(f"{base_name}{counter:03d}"):
+                counter += 1
+            piece = createNewSpringBody(doc, f"{base_name}{counter:03d}")
+        else:
+            piece = selected
+            # Vérifier/créer les propriétés manquantes
+            missing = ensureSpringProperties(piece)
+            if missing > 0:
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.props_added').format(count=missing, name=piece.Label)}\n")
+                dialogMissingProperties(missing, piece.Label)
+    
+    # Créer le DataSet et charger les données
+    data = DataSet(piece)
+    data.newSpring = is_new
+    
+    # Snapshot initial des paramètres (pour détecter les modifications)
+    initial_snapshot = getDataSnapshot(data)
+    
+    # Afficher le dialogue d'actualisation
+    def on_recalculate():
+        """Callback après recalcul"""
+        # Lire les valeurs actuelles depuis le Body (pas depuis data)
+        old_displayHeight = 0.0
+        old_simplified = True
+        if hasattr(piece, 'displayHeight'):
+            old_displayHeight = piece.displayHeight
+        elif hasattr(piece, 'onLoadHight'):
+            old_displayHeight = piece.onLoadHight
+        if hasattr(piece, 'simplified'):
+            old_simplified = piece.simplified
+        
+        # Afficher le dialogue de configuration
+        result = configuration(data)
+        
+        if result is None:
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_config')}\n")
+            return
+        
+        displayHeight, displayActiveTurnsHight, turnsPitch, config_name = result
+        
+        # Comparer avec les nouvelles valeurs
+        new_simplified = getattr(data, 'simplified', True)
+        height_changed = abs(displayHeight - old_displayHeight) > 0.001
+        simplified_changed = new_simplified != old_simplified
+        
+        # Vérifier aussi si le calculateur a modifié des paramètres
+        calc_changed = hasDataChanged(initial_snapshot, getDataSnapshot(data))
+        
+        if not height_changed and not simplified_changed and not calc_changed:
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
+            return
+        
+        # Mettre à jour les données d'affichage
+        data.displayHeight = displayHeight
+        data.activeTurnsHight = displayActiveTurnsHight
+        data.activeTurnsPitch = turnsPitch
+        data.configuration = config_name
+        
+        # Reconstruire le ressort
+        reconstructSpring(piece, data)
+        showSuccessMessage(piece.Label)
+    
+    # Boucle principale
+    while True:
+        action = springUpdateDialog(data, piece)
+        
+        if action == 'cancel':
+            App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled')}\n")
+            break
+        
+        elif action == 'recalculate':
+            # Ouvrir le calculateur
+            changed = openCalculator(piece, data, on_complete_callback=None)
+            
+            if changed:
+                # Paramètres modifiés - continuer la boucle pour proposer l'actualisation
+                continue
+            else:
+                # Pas de changement - retourner au dialogue
+                continue
+        
+        elif action == 'ok':
+            # Lire les valeurs actuelles depuis le Body (pas depuis data)
+            old_displayHeight = 0.0
+            old_simplified = True
+            if hasattr(piece, 'displayHeight'):
+                old_displayHeight = piece.displayHeight
+            elif hasattr(piece, 'onLoadHight'):
+                old_displayHeight = piece.onLoadHight
+            if hasattr(piece, 'simplified'):
+                old_simplified = piece.simplified
+            
+            # Afficher dialogue de configuration
+            result = configuration(data)
+            
+            if result is None:
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_config')}\n")
+                continue
+            
+            displayHeight, displayActiveTurnsHight, turnsPitch, config_name = result
+            
+            # Comparer avec les nouvelles valeurs
+            new_simplified = getattr(data, 'simplified', True)
+            height_changed = abs(displayHeight - old_displayHeight) > 0.001
+            simplified_changed = new_simplified != old_simplified
+            
+            # Vérifier aussi si le calculateur a modifié des paramètres
+            calc_changed = hasDataChanged(initial_snapshot, getDataSnapshot(data))
+            
+            if not height_changed and not simplified_changed and not calc_changed:
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
+                break  # Sortir proprement sans reconstruire
+            
+            # Mettre à jour les données d'affichage
+            data.displayHeight = displayHeight
+            data.activeTurnsHight = displayActiveTurnsHight
+            data.activeTurnsPitch = turnsPitch
+            data.configuration = config_name
+            
+            # Reconstruire le ressort
+            reconstructSpring(piece, data)
+            
+            # Sauvegarder le document avec retry
+            robust_save(doc)
+            
+            showSuccessMessage(piece.Label)
+            break
+    
+    # Rafraîchir
+    refresh()
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.finished')}\n")
+
+
+# =============================================================================
+# POINT D'ENTRÉE
+# =============================================================================
+
+if __name__ == "__main__":
+    main()
+else:
+    main()

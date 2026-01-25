@@ -1,0 +1,20 @@
+# -*- coding: utf-8 -*-
+"""
+Lanceur pour SpringFull - Placez ce fichier dans votre dossier Macro FreeCAD
+puis lancez-le depuis le menu Macro > Macros...
+
+Version: 1.2.0
+"""
+
+import os
+import sys
+
+# Ajouter le dossier SpringFull au path
+macro_dir = os.path.dirname(os.path.abspath(__file__))
+springfull_dir = os.path.join(macro_dir, 'SpringFull')
+
+if springfull_dir not in sys.path:
+    sys.path.insert(0, springfull_dir)
+
+# Lancer la macro principale
+exec(open(os.path.join(springfull_dir, 'SpringFull.FCMacro')).read())

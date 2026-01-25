@@ -1,0 +1,407 @@
+{
+  "metadata": {
+    "version": "1.5.0",
+    "language": "it",
+    "description": "Database materiali per molle - Italiano",
+    "note": "Italian translation - Derived from materials_en.json"
+  },
+  
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "display_name": "Acciaio inossidabile Duplex",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Acciaio inossidabile austeno-ferritico. Eccellente resistenza meccanica e alla corrosione.",
+      "corrosion_resistance": "Eccellente (superiore a 304/316)",
+      "surface_treatments": [
+        "Pallinatura",
+        "Passivazione"
+      ],
+      "temperature_range": {"min": -50, "max": 250},
+      "applications": [
+        "Offshore e marino",
+        "Industrie chimiche",
+        "Alta resistenza meccanica e alla corrosione"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Leggermente ferromagnetico",
+        "Resistenza superiore all'acciaio inox 304/316",
+        "Eccellenti prestazioni in ambiente marino"
+      ]
+    },
+
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "display_name": "Acciaio per molle trafilato duro (DH)",
+      "code": "EN 10270-1 DH",
+      "description": "Filo di acciaio non legato trafilato duro per molle a compressione di uso generale.",
+      "corrosion_resistance": "Scarsa (richiede protezione)",
+      "surface_treatments": [
+        "Pallinatura",
+        "Fosfatazione",
+        "Zincatura",
+        "Oliatura"
+      ],
+      "temperature_range": {"min": -30, "max": 120},
+      "applications": [
+        "Molle a compressione per uso generale",
+        "Molle meccaniche per attrezzature industriali",
+        "Molle di comando e ritorno"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Economico per applicazioni standard",
+        "Richiede protezione anticorrosione",
+        "Buona resistenza a fatica"
+      ]
+    },
+
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "display_name": "Acciaio inox 316 per molle",
+      "code": "EN 10270-3 (1.4401)",
+      "description": "Acciaio inossidabile austenitico tipo 316 per molle in ambienti aggressivi.",
+      "corrosion_resistance": "Eccellente (acqua di mare, ambienti clorurati)",
+      "surface_treatments": [
+        "Pallinatura",
+        "Passivazione",
+        "Elettrolucidatura"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Molle in ambiente marino",
+        "Industria chimica e petrolchimica",
+        "Applicazioni alimentari e medicali"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Bassa"
+      },
+      "notes": [
+        "Resistente ai cloruri",
+        "Amagnetico",
+        "Eccellenti prestazioni in ambienti aggressivi"
+      ]
+    },
+
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "display_name": "Acciaio per molle SiCr",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Filo di acciaio legato silicio-cromo, bonificato in olio, per molle ad alte prestazioni.",
+      "corrosion_resistance": "Scarsa (richiede protezione)",
+      "surface_treatments": [
+        "Pallinatura",
+        "Fosfatazione",
+        "Verniciatura",
+        "Oliatura"
+      ],
+      "temperature_range": {"min": -40, "max": 200},
+      "applications": [
+        "Molle per automotive",
+        "Molle industriali statiche",
+        "Molle di grande sezione"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Resistenza meccanica molto elevata",
+        "Eccellente resistenza a fatica",
+        "Ideale per carichi pesanti"
+      ]
+    },
+
+    "ACIER RESSORT TREMPE HUILE": {
+      "display_name": "Acciaio per molle bonificato in olio",
+      "code": "EN 10270-2",
+      "description": "Filo di acciaio per molle bonificato in olio (gradi FDC/FDSiCr).",
+      "corrosion_resistance": "Scarsa (protetto con vernice, olio o zinco)",
+      "surface_treatments": [
+        "Zincatura",
+        "Fosfatazione",
+        "Verniciatura",
+        "Oliatura"
+      ],
+      "temperature_range": {"min": -40, "max": 180},
+      "applications": [
+        "Molle di sospensione",
+        "Molle a compressione di grande diametro",
+        "Molle per macchinari industriali"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Per molle di grande diametro",
+        "Elevata resistenza meccanica",
+        "Richiede protezione anticorrosione"
+      ]
+    },
+
+    "BRONZE ALUMINIUM": {
+      "display_name": "Bronzo all'alluminio",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Lega rame-alluminio-ferro (10% Al, 5% Fe). Eccellente resistenza marina.",
+      "corrosion_resistance": "Eccellente (acqua di mare, nebbia salina)",
+      "surface_treatments": [
+        "Non richiesto"
+      ],
+      "temperature_range": {"min": -100, "max": 250},
+      "applications": [
+        "Ambiente marino (navi, offshore)",
+        "Nebbia salina",
+        "Zone ATEX",
+        "Applicazioni subacquee",
+        "Industria chimica"
+      ],
+      "conductivity": {
+        "electrical": "Moderata (15% IACS)",
+        "thermal": "Buona"
+      },
+      "notes": [
+        "Antiscintilla (ATEX)",
+        "Eccellente resistenza meccanica",
+        "Resistente all'acqua di mare"
+      ]
+    },
+
+    "BRONZE BERYLLIUM": {
+      "display_name": "Rame berillio",
+      "code": "CuBe2 / CW101C",
+      "description": "Lega rame-berillio (1,8-2% Be). Amagnetico, eccellente conduttività.",
+      "corrosion_resistance": "Molto buona",
+      "surface_treatments": [
+        "Pallinatura con sfere di vetro/ceramica",
+        "Elettrolucidatura",
+        "Nichelatura chimica",
+        "Doratura",
+        "ATTENZIONE: Lavorazione in ambiente controllato (tossicità Be)"
+      ],
+      "temperature_range": {"min": -200, "max": 200},
+      "applications": [
+        "Zone ATEX (antiscintilla)",
+        "Connettori elettrici ad alte prestazioni",
+        "Strumenti di precisione",
+        "Aerospaziale",
+        "Utensili antiscintilla",
+        "Molle ad alte prestazioni"
+      ],
+      "conductivity": {
+        "electrical": "Buona (22% IACS dopo indurimento)",
+        "thermal": "Buona"
+      },
+      "notes": [
+        "RICHIEDE trattamento termico di indurimento",
+        "Eccellenti proprietà meccaniche + conduttività",
+        "ATEX: Amagnetico e antiscintilla",
+        "ATTENZIONE: Polvere di Be tossica durante la lavorazione",
+        "Costo molto elevato"
+      ]
+    },
+
+    "BRONZE PHOSPHOREUX": {
+      "display_name": "Bronzo fosforoso",
+      "code": "CuSn8 / CW453K",
+      "description": "Lega rame-stagno-fosforo. Buona resistenza a fatica, amagnetico.",
+      "corrosion_resistance": "Molto buona (acqua di mare)",
+      "surface_treatments": [
+        "Passivazione",
+        "Brunitura"
+      ],
+      "temperature_range": {"min": -100, "max": 150},
+      "applications": [
+        "Ambienti marini",
+        "Contatti elettrici",
+        "Applicazioni elettriche",
+        "Strumenti di misura"
+      ],
+      "conductivity": {
+        "electrical": "Buona (15% IACS)",
+        "thermal": "Buona"
+      },
+      "notes": [
+        "Amagnetico",
+        "Eccellente resistenza a fatica",
+        "Buona conduttività",
+        "Costo moderato"
+      ]
+    },
+
+    "CORDE A PIANO": {
+      "display_name": "Corda per pianoforte",
+      "code": "EN 10270-1 SH",
+      "description": "Acciaio ad alto tenore di carbonio (0,70-1,00% C). Eccellente rapporto resistenza/costo. Standard industriale.",
+      "corrosion_resistance": "Scarsa",
+      "surface_treatments": [
+        "Pallinatura",
+        "Fosfatazione",
+        "Zincatura",
+        "Nichelatura",
+        "Verniciatura a polvere"
+      ],
+      "temperature_range": {"min": -40, "max": 120},
+      "applications": [
+        "Molle di precisione",
+        "Industria generale",
+        "Automotive",
+        "Elettrodomestici",
+        "Elevata sollecitazione meccanica"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Materiale più comune",
+        "Eccellente rapporto qualità/prezzo",
+        "Richiede protezione anticorrosione",
+        "Temp. max: 120°C in continuo"
+      ]
+    },
+
+    "CUPRO-NICKEL": {
+      "display_name": "Cupronichel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Lega rame-nichel-manganese (30% Ni, 1% Mn). Eccezionale resistenza marina.",
+      "corrosion_resistance": "Eccezionale (acqua di mare, biofouling)",
+      "surface_treatments": [
+        "Non richiesto"
+      ],
+      "temperature_range": {"min": -100, "max": 300},
+      "applications": [
+        "Marina (desalinizzazione, offshore)",
+        "Resistenza al biofouling",
+        "Scambiatori di calore ad acqua di mare",
+        "Zone ATEX",
+        "Industria chimica"
+      ],
+      "conductivity": {
+        "electrical": "Bassa (5% IACS)",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Anti-biofouling naturale",
+        "Eccellente resistenza all'acqua di mare",
+        "Amagnetico",
+        "Antiscintilla (ATEX)"
+      ]
+    },
+
+    "INCONEL 718": {
+      "display_name": "Inconel 718",
+      "code": "NiCr19NbMo / UNS N07718",
+      "description": "Superlega nichel-cromo indurita per precipitazione. Resistenza molto elevata a temperatura.",
+      "corrosion_resistance": "Eccellente",
+      "surface_treatments": [
+        "Non richiesto"
+      ],
+      "temperature_range": {"min": -200, "max": 650},
+      "applications": [
+        "Aerospaziale",
+        "Turbine a gas",
+        "Applicazioni ad alta temperatura",
+        "Motori aeronautici",
+        "Applicazioni criogeniche"
+      ],
+      "conductivity": {
+        "electrical": "Moderata",
+        "thermal": "Moderata"
+      },
+      "notes": [
+        "Superlega con massima resistenza",
+        "Temp. max: 650°C",
+        "Costo molto elevato",
+        "Eccellente resistenza allo scorrimento"
+      ]
+    },
+
+    "INOX": {
+      "display_name": "Inox 302/304",
+      "code": "EN 10270-3 (1.4310)",
+      "description": "Acciaio inossidabile austenitico tipo 302/304. Buona resistenza generale alla corrosione.",
+      "corrosion_resistance": "Eccellente",
+      "surface_treatments": [
+        "Pallinatura",
+        "Passivazione",
+        "Elettrolucidatura"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Ambienti corrosivi",
+        "Alimentare e medicale",
+        "Alta/bassa temperatura",
+        "Atmosfera umida o chimica"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Bassa"
+      },
+      "notes": [
+        "Acciaio inox standard",
+        "Leggermente magnetico dopo lavorazione a freddo",
+        "Buona resistenza a fatica"
+      ]
+    },
+
+    "INOX 17-7PH": {
+      "display_name": "Inox 17-7 PH",
+      "code": "1.4568 / UNS S17700",
+      "description": "Acciaio inossidabile indurente per precipitazione. Alta resistenza dopo trattamento termico.",
+      "corrosion_resistance": "Buona a molto buona",
+      "surface_treatments": [
+        "Passivazione"
+      ],
+      "temperature_range": {"min": -200, "max": 480},
+      "applications": [
+        "Molle ad alte prestazioni",
+        "Aerospaziale",
+        "Molle per alta temperatura",
+        "Meccanismi di precisione"
+      ],
+      "conductivity": {
+        "electrical": "Bassa",
+        "thermal": "Bassa"
+      },
+      "notes": [
+        "Resistenza molto elevata",
+        "Richiede trattamento termico",
+        "Eccellente vita a fatica",
+        "Inferiore al 316 in ambienti clorurati"
+      ]
+    },
+
+    "LAITON": {
+      "display_name": "Ottone",
+      "code": "CuZn37 / CW508L",
+      "description": "Lega rame-zinco (37% Zn). Economico, buona formabilità.",
+      "corrosion_resistance": "Buona (eccetto nebbia salina prolungata)",
+      "surface_treatments": [
+        "Nichelatura",
+        "Cromatura"
+      ],
+      "temperature_range": {"min": -100, "max": 100},
+      "applications": [
+        "Zone ATEX (antiscintilla)",
+        "Contatti elettrici a bassa corrente",
+        "Strumentazione",
+        "Ferramenta decorativa"
+      ],
+      "conductivity": {
+        "electrical": "Buona (28% IACS)",
+        "thermal": "Buona"
+      },
+      "notes": [
+        "Basso costo",
+        "Facile da formare",
+        "Resistenza limitata",
+        "Amagnetico"
+      ]
+    }
+  }
+}

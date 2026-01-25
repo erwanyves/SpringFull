@@ -1,0 +1,1988 @@
+{
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "name": "Duplex Stainless Steel",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Austenitic-ferritic stainless steel",
+      "shear_modulus_G": {
+        "value": 79000,
+        "unit": "N/mm²",
+        "value_daN": 7900,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 2000,
+            "Rm_daN": 200.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 4.0,
+            "Rm_MPa": 1900,
+            "Rm_daN": 190.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1800,
+            "Rm_daN": 180.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 16.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.48,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.38,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.28,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.78,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -50,
+        "max": 250,
+        "unit": "°C",
+        "note": "Excellent resistance"
+      },
+      "corrosion_resistance": "Excellent (superior to 304/316)",
+      "magnetic": "Slightly ferromagnetic",
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation"
+      ],
+      "applications": [
+        "Offshore and marine",
+        "Chemical industries",
+        "High mechanical and corrosion resistance"
+      ],
+      "color": {
+        "diffuse": [
+          0.58,
+          0.63,
+          0.66
+        ],
+        "ambient": [
+          0.32,
+          0.35,
+          0.37
+        ],
+        "specular": [
+          0.96,
+          0.96,
+          0.96
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.28,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "2.5",
+        "thermal_wmk": "19"
+      }
+    },
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "name": "Hard Drawn Spring Steel",
+      "code": "EN 10270-1 DH",
+      "description": "Non-alloyed hard drawn steel wire for general purpose compression springs",
+      "shear_modulus_G": {
+        "value": 80000,
+        "unit": "N/mm²",
+        "value_daN": 8000,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C for carbon steels"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter (class DH, approx. EN 10270-1)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 1.5,
+            "Rm_MPa": 1650,
+            "Rm_daN": 165.0
+          },
+          {
+            "d_min": 1.5,
+            "d_max": 2.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 2.5,
+            "Rm_MPa": 1550,
+            "Rm_daN": 155.0
+          },
+          {
+            "d_min": 2.5,
+            "d_max": 3.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 3.5,
+            "Rm_MPa": 1450,
+            "Rm_daN": 145.0
+          },
+          {
+            "d_min": 3.5,
+            "d_max": 4.0,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 5.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1300,
+            "Rm_daN": 130.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1250,
+            "Rm_daN": 125.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1200,
+            "Rm_daN": 120.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - < 10k cycles"
+        },
+        "static": {
+          "factor": 0.5,
+          "description": "Static or quasi-static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.4,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.3,
+          "description": "Severe service - Fast dynamic (limited for DH)"
+        },
+        "set_solid": {
+          "factor": 0.75,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -30,
+        "max": 120,
+        "unit": "°C",
+        "note": "Typical operating range without major property reduction"
+      },
+      "surface_treatments": [
+        "Shot peening",
+        "Phosphating",
+        "Zinc plating",
+        "Oiling"
+      ],
+      "applications": [
+        "General purpose compression springs",
+        "Mechanical springs for industrial equipment",
+        "Control and return springs"
+      ],
+      "color": {
+        "diffuse": [
+          0.05,
+          0.05,
+          0.05
+        ],
+        "ambient": [
+          0.06,
+          0.06,
+          0.06
+        ],
+        "specular": [
+          0.95,
+          0.95,
+          0.95
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.04,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "8",
+        "thermal_wmk": "50"
+      }
+    },
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "name": "316 Stainless Spring Steel",
+      "code": "EN 10270-3 (1.4401 / X5CrNiMo17-12-2)",
+      "description": "Type 316 austenitic stainless steel for compression springs in highly corrosive environments",
+      "shear_modulus_G": {
+        "value": 72000,
+        "unit": "N/mm²",
+        "value_daN": 7200,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C for austenitic stainless steels"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter (approx. 316 spring)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 1.6,
+            "Rm_MPa": 1650,
+            "Rm_daN": 165.0
+          },
+          {
+            "d_min": 1.6,
+            "d_max": 2.5,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 2.5,
+            "d_max": 4.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1300,
+            "Rm_daN": 130.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - < 10k cycles"
+        },
+        "static": {
+          "factor": 0.45,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.35,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.25,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.75,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -200,
+        "max": 300,
+        "unit": "°C",
+        "note": "Very good temperature and corrosion resistance (better than 302/304 in chloride environments)"
+      },
+      "corrosion_resistance": "Excellent (seawater, chloride environments, marine atmosphere)",
+      "magnetic": false,
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation",
+        "Electropolishing"
+      ],
+      "applications": [
+        "Compression springs in marine environment",
+        "Chemical and petrochemical industry",
+        "Food and medical applications in aggressive environments"
+      ],
+      "color": {
+        "diffuse": [
+          0.6,
+          0.65,
+          0.68
+        ],
+        "ambient": [
+          0.34,
+          0.37,
+          0.39
+        ],
+        "specular": [
+          0.96,
+          0.96,
+          0.96
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.25,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "2.3",
+        "thermal_wmk": "16"
+      }
+    },
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "name": "SiCr Spring Steel",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Silicon-chromium alloy steel wire, oil tempered, for static or low-dynamic compression springs",
+      "shear_modulus_G": {
+        "value": 80000,
+        "unit": "N/mm²",
+        "value_daN": 8000,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C, similar to alloy spring steels"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter (FD SiCr grade)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 3.0,
+            "d_max": 3.2,
+            "Rm_MPa": 2000,
+            "Rm_daN": 200.0
+          },
+          {
+            "d_min": 3.2,
+            "d_max": 3.5,
+            "Rm_MPa": 1980,
+            "Rm_daN": 198.0
+          },
+          {
+            "d_min": 3.5,
+            "d_max": 4.0,
+            "Rm_MPa": 1950,
+            "Rm_daN": 195.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 4.2,
+            "Rm_MPa": 1930,
+            "Rm_daN": 193.0
+          },
+          {
+            "d_min": 4.2,
+            "d_max": 4.5,
+            "Rm_MPa": 1910,
+            "Rm_daN": 191.0
+          },
+          {
+            "d_min": 4.5,
+            "d_max": 4.7,
+            "Rm_MPa": 1890,
+            "Rm_daN": 189.0
+          },
+          {
+            "d_min": 4.7,
+            "d_max": 5.0,
+            "Rm_MPa": 1870,
+            "Rm_daN": 187.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 5.6,
+            "Rm_MPa": 1830,
+            "Rm_daN": 183.0
+          },
+          {
+            "d_min": 5.6,
+            "d_max": 6.0,
+            "Rm_MPa": 1810,
+            "Rm_daN": 181.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 6.5,
+            "Rm_MPa": 1790,
+            "Rm_daN": 179.0
+          },
+          {
+            "d_min": 6.5,
+            "d_max": 7.0,
+            "Rm_MPa": 1770,
+            "Rm_daN": 177.0
+          },
+          {
+            "d_min": 7.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1740,
+            "Rm_daN": 174.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 8.5,
+            "Rm_MPa": 1720,
+            "Rm_daN": 172.0
+          },
+          {
+            "d_min": 8.5,
+            "d_max": 10.0,
+            "Rm_MPa": 1680,
+            "Rm_daN": 168.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 12.0,
+            "Rm_MPa": 1640,
+            "Rm_daN": 164.0
+          },
+          {
+            "d_min": 12.0,
+            "d_max": 14.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 14.0,
+            "d_max": 15.0,
+            "Rm_MPa": 1580,
+            "Rm_daN": 158.0
+          },
+          {
+            "d_min": 15.0,
+            "d_max": 18.5,
+            "Rm_MPa": 1560,
+            "Rm_daN": 156.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low-stress compression springs"
+        },
+        "static": {
+          "factor": 0.5,
+          "description": "Static or quasi-static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.4,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.3,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.8,
+          "description": "Allowable stress at solid height (hot coiled + tempered)"
+        }
+      },
+      "temperature_range": {
+        "min": -40,
+        "max": 200,
+        "unit": "°C",
+        "note": "Good temperature resistance for compression springs"
+      },
+      "surface_treatments": [
+        "Shot peening",
+        "Anti-corrosion coating (phosphating, painting)",
+        "Oiling"
+      ],
+      "applications": [
+        "Automotive compression springs",
+        "Static or low-dynamic industrial springs",
+        "Heavy section springs"
+      ],
+      "color": {
+        "diffuse": [
+          0.15,
+          0.15,
+          0.15
+        ],
+        "ambient": [
+          0.1,
+          0.1,
+          0.1
+        ],
+        "specular": [
+          0.9,
+          0.9,
+          0.9
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.06,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "6",
+        "thermal_wmk": "42"
+      }
+    },
+    "ACIER RESSORT TREMPE HUILE": {
+      "name": "Oil Tempered Spring Steel",
+      "code": "EN 10270-2",
+      "description": "Oil tempered spring steel wire (FDC/FDSiCr grades)",
+      "shear_modulus_G": {
+        "value": 81000,
+        "unit": "N/mm²",
+        "value_daN": 8100,
+        "unit_daN": "daN/mm²",
+        "note": "Typical value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter (typical values)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 3.0,
+            "Rm_MPa": 1650,
+            "Rm_daN": 165.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 4.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 5.0,
+            "Rm_MPa": 1550,
+            "Rm_daN": 155.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1450,
+            "Rm_daN": 145.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 12.0,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 12.0,
+            "d_max": 16.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          }
+        ]
+      },
+      "temperature_range": {
+        "min": -40,
+        "max": 180,
+        "unit": "°C",
+        "note": "Utilisation typique pour ressorts de compression"
+      },
+      "corrosion_resistance": "Poor (protected by paint, oil or zinc plating)",
+      "magnetic": true,
+      "conductivity": {
+        "electrical": "Very low",
+        "thermal": "Moderate",
+        "electrical_iacs": "7",
+        "thermal_wmk": "48"
+      },
+      "applications": [
+        "Suspension springs",
+        "Large diameter compression springs",
+        "Springs for industrial machinery"
+      ],
+      "notes": [
+        "Very good fatigue resistance",
+        "Not suitable for corrosive environments without protection",
+        "Moderate cost, widely used in automotive"
+      ],
+      "color": {
+        "diffuse": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "ambient": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "specular": [
+          0.98,
+          0.98,
+          0.98
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.06,
+        "transparency": 0.0
+      }
+    },
+    "BRONZE ALUMINIUM": {
+      "name": "Aluminum Bronze",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Copper-aluminum-iron alloy (10% Al, 5% Fe)",
+      "shear_modulus_G": {
+        "value": 50000,
+        "unit": "N/mm²",
+        "value_daN": 5000,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 950,
+            "Rm_daN": 95.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 900,
+            "Rm_daN": 90.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 4.0,
+            "Rm_MPa": 850,
+            "Rm_daN": 85.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 800,
+            "Rm_daN": 80.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 10.0,
+            "Rm_MPa": 750,
+            "Rm_daN": 75.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 16.0,
+            "Rm_MPa": 700,
+            "Rm_daN": 70.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.42,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.32,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.22,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.68,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -100,
+        "max": 250,
+        "unit": "°C",
+        "note": "Excellent temperature performance"
+      },
+      "corrosion_resistance": "Excellent (seawater, salt spray)",
+      "magnetic": false,
+      "atex_compatible": true,
+      "applications": [
+        "Marine environment (ship, offshore)",
+        "Salt spray",
+        "ATEX zones",
+        "Underwater applications",
+        "Chemical industry",
+        "High corrosion and mechanical resistance"
+      ],
+      "special_notes": [
+        "Exceptional seawater resistance",
+        "Superior corrosion resistance to phosphor bronze",
+        "ATEX: Non-magnetic and spark-proof",
+        "Excellent wear resistance",
+        "Resistant to dilute acids"
+      ],
+      "electrochemical_potential": {
+        "value": -0.3,
+        "unit": "V vs SHE",
+        "note": "Compatible avec acier inox en milieu marin"
+      },
+      "color": {
+        "diffuse": [
+          0.75,
+          0.49,
+          0.18
+        ],
+        "ambient": [
+          0.3,
+          0.19,
+          0.05
+        ],
+        "specular": [
+          0.95,
+          0.8,
+          0.55
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.24,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "15",
+        "thermal_wmk": "56"
+      }
+    },
+    "BRONZE BERYLLIUM": {
+      "name": "Beryllium Copper",
+      "code": "CuBe2 / CW101C",
+      "description": "Copper-beryllium alloy (1.8-2.0% Be)",
+      "shear_modulus_G": {
+        "value": 48000,
+        "unit": "N/mm²",
+        "value_daN": 4800,
+        "unit_daN": "daN/mm²",
+        "note": "Value after heat treatment"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength (after hardening heat treatment)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.1,
+            "d_max": 0.5,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 1300,
+            "Rm_daN": 130.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 4.0,
+            "Rm_MPa": 1250,
+            "Rm_daN": 125.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1200,
+            "Rm_daN": 120.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1150,
+            "Rm_daN": 115.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.45,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.35,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.25,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.75,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -200,
+        "max": 200,
+        "unit": "°C",
+        "note": "Maintains properties at low temperature"
+      },
+      "conductivity": {
+        "electrical": "Good (22% IACS after hardening)",
+        "thermal": "Good",
+        "electrical_iacs": "22",
+        "thermal_wmk": "115"
+      },
+      "corrosion_resistance": "Very good",
+      "magnetic": false,
+      "atex_compatible": true,
+      "applications": [
+        "ATEX zones (spark-proof)",
+        "High performance electrical connectors",
+        "Precision instruments",
+        "Aerospace and space",
+        "Spark-proof tooling",
+        "High performance springs + conductivity"
+      ],
+      "special_notes": [
+        "REQUIRES hardening heat treatment (TH)",
+        "Excellent mechanical properties + conductivity",
+        "ATEX: Non-magnetic and spark-proof",
+        "WARNING: Toxic Be dust during machining",
+        "Very high cost",
+        "Exceptional performance"
+      ],
+      "electrochemical_potential": {
+        "value": -0.35,
+        "unit": "V vs SHE",
+        "note": "Compatible with most metals"
+      },
+      "safety_warning": "⚠️ TOXIC: Toxic beryllium - Special precautions during machining",
+      "color": {
+        "diffuse": [
+          0.74,
+          0.47,
+          0.22
+        ],
+        "ambient": [
+          0.26,
+          0.16,
+          0.07
+        ],
+        "specular": [
+          0.6,
+          0.45,
+          0.32
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.26,
+        "transparency": 0.0
+      }
+    },
+    "BRONZE PHOSPHOREUX": {
+      "name": "Phosphor Bronze",
+      "code": "CuSn8",
+      "description": "Copper-tin alloy with phosphorus (8% Sn)",
+      "shear_modulus_G": {
+        "value": 44000,
+        "unit": "N/mm²",
+        "value_daN": 4400,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.1,
+            "d_max": 0.5,
+            "Rm_MPa": 900,
+            "Rm_daN": 90.0
+          },
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 850,
+            "Rm_daN": 85.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 800,
+            "Rm_daN": 80.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 3.0,
+            "Rm_MPa": 750,
+            "Rm_daN": 75.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 5.0,
+            "Rm_MPa": 700,
+            "Rm_daN": 70.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 8.0,
+            "Rm_MPa": 650,
+            "Rm_daN": 65.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 12.0,
+            "Rm_MPa": 600,
+            "Rm_daN": 60.0
+          },
+          {
+            "d_min": 12.0,
+            "d_max": 16.0,
+            "Rm_MPa": 550,
+            "Rm_daN": 55.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.4,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.3,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.2,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.65,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -100,
+        "max": 150,
+        "unit": "°C",
+        "note": "Good thermal stability"
+      },
+      "conductivity": {
+        "electrical": "Good",
+        "thermal": "Good",
+        "electrical_iacs": "15",
+        "thermal_wmk": "50"
+      },
+      "corrosion_resistance": "Very good (seawater)",
+      "magnetic": false,
+      "surface_treatments": [
+        "Passivation",
+        "Burnishing"
+      ],
+      "applications": [
+        "Marine environments",
+        "Electrical contacts",
+        "Corrosion resistance",
+        "Electrical applications",
+        "Measuring instruments"
+      ],
+      "notes": [
+        "Excellent fatigue resistance",
+        "Good electrical conductivity",
+        "Non-magnetic"
+      ],
+      "color": {
+        "diffuse": [
+          0.71,
+          0.43,
+          0.18
+        ],
+        "ambient": [
+          0.21,
+          0.13,
+          0.05
+        ],
+        "specular": [
+          0.39,
+          0.27,
+          0.16
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.2,
+        "transparency": 0.0
+      }
+    },
+    "CORDE A PIANO": {
+      "name": "Music Wire",
+      "code": "EN 10270-1 SH",
+      "description": "Non-alloyed, patented, cold-drawn steel (high strength)",
+      "shear_modulus_G": {
+        "value": 81500,
+        "unit": "N/mm²",
+        "value_daN": 8150,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.1,
+            "d_max": 0.4,
+            "Rm_MPa": 2450,
+            "Rm_daN": 245.0
+          },
+          {
+            "d_min": 0.4,
+            "d_max": 0.5,
+            "Rm_MPa": 2350,
+            "Rm_daN": 235.0
+          },
+          {
+            "d_min": 0.5,
+            "d_max": 0.7,
+            "Rm_MPa": 2250,
+            "Rm_daN": 225.0
+          },
+          {
+            "d_min": 0.7,
+            "d_max": 1.0,
+            "Rm_MPa": 2150,
+            "Rm_daN": 215.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 1.4,
+            "Rm_MPa": 2050,
+            "Rm_daN": 205.0
+          },
+          {
+            "d_min": 1.4,
+            "d_max": 2.0,
+            "Rm_MPa": 1950,
+            "Rm_daN": 195.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 2.5,
+            "Rm_MPa": 1850,
+            "Rm_daN": 185.0
+          },
+          {
+            "d_min": 2.5,
+            "d_max": 3.0,
+            "Rm_MPa": 1750,
+            "Rm_daN": 175.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 4.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 5.0,
+            "Rm_MPa": 1650,
+            "Rm_daN": 165.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 7.0,
+            "Rm_MPa": 1550,
+            "Rm_daN": 155.0
+          },
+          {
+            "d_min": 7.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1450,
+            "Rm_daN": 145.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 12.5,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 12.5,
+            "d_max": 16.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          },
+          {
+            "d_min": 16.0,
+            "d_max": 20.0,
+            "Rm_MPa": 1300,
+            "Rm_daN": 130.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.5,
+          "description": "Static or quasi-static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.4,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.3,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.8,
+          "description": "Allowable stress at solid height (cold coiled)"
+        }
+      },
+      "temperature_range": {
+        "min": -40,
+        "max": 120,
+        "unit": "°C",
+        "note": "Plage d'utilisation normale sans correction"
+      },
+      "surface_treatments": [
+        "Shot peening",
+        "Phosphating",
+        "Zinc plating"
+      ],
+      "applications": [
+        "Precision springs",
+        "High mechanical stress",
+        "Long service life"
+      ],
+      "color": {
+        "diffuse": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "ambient": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "specular": [
+          0.98,
+          0.98,
+          0.98
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.06,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "8",
+        "thermal_wmk": "52"
+      }
+    },
+    "CUPRO-NICKEL": {
+      "name": "Cupronickel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Copper-nickel-manganese alloy (30% Ni, 1% Mn)",
+      "shear_modulus_G": {
+        "value": 53000,
+        "unit": "N/mm²",
+        "value_daN": 5300,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 750,
+            "Rm_daN": 75.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 700,
+            "Rm_daN": 70.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 4.0,
+            "Rm_MPa": 650,
+            "Rm_daN": 65.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 620,
+            "Rm_daN": 62.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 10.0,
+            "Rm_MPa": 600,
+            "Rm_daN": 60.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.38,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.28,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.2,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.65,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -100,
+        "max": 300,
+        "unit": "°C",
+        "note": "Excellent thermal stability"
+      },
+      "corrosion_resistance": "Exceptional (seawater, biofouling)",
+      "magnetic": false,
+      "atex_compatible": true,
+      "applications": [
+        "Marine (desalination, offshore)",
+        "Biofouling resistance",
+        "Seawater heat exchangers",
+        "ATEX zones",
+        "Chemical industry",
+        "Severe marine environments"
+      ],
+      "special_notes": [
+        "EXCEPTIONAL seawater resistance",
+        "Natural anti-biofouling",
+        "Resistant to pitting corrosion",
+        "ATEX: Non-magnetic",
+        "Good thermal conductivity",
+        "Moderate cost vs beryllium copper"
+      ],
+      "electrochemical_potential": {
+        "value": -0.25,
+        "unit": "V vs SHE",
+        "note": "Excellent pour environnements marins"
+      },
+      "color": {
+        "diffuse": [
+          0.72,
+          0.55,
+          0.46
+        ],
+        "ambient": [
+          0.3,
+          0.23,
+          0.19
+        ],
+        "specular": [
+          0.9,
+          0.86,
+          0.82
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.22,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "5",
+        "thermal_wmk": "29"
+      }
+    },
+    "INCONEL 718": {
+      "name": "Inconel 718",
+      "code": "NiCr19NbMo",
+      "description": "High temperature nickel-chromium superalloy",
+      "shear_modulus_G": {
+        "value": 77200,
+        "unit": "N/mm²",
+        "value_daN": 7720,
+        "unit_daN": "daN/mm²",
+        "note": "Value at room temperature"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength (after heat treatment)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 3.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1550,
+            "Rm_daN": 155.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 16.0,
+            "Rm_MPa": 1450,
+            "Rm_daN": 145.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.42,
+          "description": "Service statique haute température"
+        },
+        "medium_dynamic": {
+          "factor": 0.32,
+          "description": "Service moyen haute température"
+        },
+        "severe_dynamic": {
+          "factor": 0.22,
+          "description": "Service sévère haute température"
+        },
+        "set_solid": {
+          "factor": 0.7,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -200,
+        "max": 650,
+        "unit": "°C",
+        "note": "Maintient ses propriétés à haute température"
+      },
+      "corrosion_resistance": "Excellent",
+      "magnetic": false,
+      "applications": [
+        "Aerospace and space",
+        "Gas turbines",
+        "High temperature applications",
+        "Aggressive environments"
+      ],
+      "special_notes": [
+        "Nécessite traitement thermique spécifique",
+        "Coût élevé",
+        "Usinage difficile"
+      ],
+      "color": {
+        "diffuse": [
+          0.52,
+          0.52,
+          0.55
+        ],
+        "ambient": [
+          0.28,
+          0.28,
+          0.3
+        ],
+        "specular": [
+          0.97,
+          0.97,
+          0.98
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.3,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "1.7",
+        "thermal_wmk": "11"
+      }
+    },
+    "INOX": {
+      "name": "Stainless Steel",
+      "code": "EN 10270-3 (1.4310 / X10CrNi18-8)",
+      "description": "Austenitic stainless steel type 302/304",
+      "shear_modulus_G": {
+        "value": 73000,
+        "unit": "N/mm²",
+        "value_daN": 7300,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Résistance à la traction fonction du diamètre fil (1.4310)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.1,
+            "d_max": 0.5,
+            "Rm_MPa": 1900,
+            "Rm_daN": 190.0
+          },
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 1850,
+            "Rm_daN": 185.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 1.6,
+            "Rm_MPa": 1800,
+            "Rm_daN": 180.0
+          },
+          {
+            "d_min": 1.6,
+            "d_max": 2.5,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 2.5,
+            "d_max": 4.0,
+            "Rm_MPa": 1600,
+            "Rm_daN": 160.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1500,
+            "Rm_daN": 150.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1400,
+            "Rm_daN": 140.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 10.0,
+            "Rm_MPa": 1350,
+            "Rm_daN": 135.0
+          },
+          {
+            "d_min": 10.0,
+            "d_max": 16.0,
+            "Rm_MPa": 1300,
+            "Rm_daN": 130.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.45,
+          "description": "Service statique (légèrement inférieur à l'acier)"
+        },
+        "medium_dynamic": {
+          "factor": 0.35,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.25,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.75,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -200,
+        "max": 300,
+        "unit": "°C",
+        "note": "Excellente résistance température et corrosion"
+      },
+      "corrosion_resistance": "Excellent",
+      "magnetic": false,
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation",
+        "Electropolishing"
+      ],
+      "applications": [
+        "Corrosive environments",
+        "Food and medical",
+        "High/low temperature",
+        "Humid or chemical atmosphere"
+      ],
+      "color": {
+        "diffuse": [
+          0.62,
+          0.67,
+          0.7
+        ],
+        "ambient": [
+          0.35,
+          0.38,
+          0.4
+        ],
+        "specular": [
+          0.95,
+          0.95,
+          0.95
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.25,
+        "transparency": 0.0
+      },
+      "conductivity": {
+        "electrical_iacs": "2.4",
+        "thermal_wmk": "16"
+      }
+    },
+    "INOX 17-7PH": {
+      "name": "17-7 PH Stainless Steel",
+      "code": "1.4568 / UNS S17700",
+      "description": "Precipitation hardening stainless, high strength for springs",
+      "shear_modulus_G": {
+        "value": 75000,
+        "unit": "N/mm²",
+        "value_daN": 7500,
+        "unit_daN": "daN/mm²",
+        "note": "Typical value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Résistance à la traction (fil ressort, état durci, valeurs typiques)",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 1900,
+            "Rm_daN": 190.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 1850,
+            "Rm_daN": 185.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 3.0,
+            "Rm_MPa": 1800,
+            "Rm_daN": 180.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 4.0,
+            "Rm_MPa": 1750,
+            "Rm_daN": 175.0
+          },
+          {
+            "d_min": 4.0,
+            "d_max": 6.0,
+            "Rm_MPa": 1700,
+            "Rm_daN": 170.0
+          },
+          {
+            "d_min": 6.0,
+            "d_max": 8.0,
+            "Rm_MPa": 1650,
+            "Rm_daN": 165.0
+          }
+        ]
+      },
+      "temperature_range": {
+        "min": -200,
+        "max": 480,
+        "unit": "°C",
+        "note": "Très bonne tenue mécanique jusqu'à 400°C environ"
+      },
+      "corrosion_resistance": "Good to very good (inferior to 316 in chloride environments)",
+      "magnetic": "Faiblement magnétique à fortement magnétique selon traitement",
+      "conductivity": {
+        "electrical": "Faible (≈0,8 Ω·mm²/m, ~0,72 μΩ·m)",
+        "thermal": "≈16 W/m·K à 20°C",
+        "electrical_iacs": "2.2",
+        "thermal_wmk": "17"
+      },
+      "applications": [
+        "High performance springs",
+        "Aerospace and space",
+        "Springs subject to high temperatures",
+        "Precision mechanisms"
+      ],
+      "notes": [
+        "Très forte résistance mécanique après traitement de durcissement",
+        "Bonne tenue à la fatigue",
+        "Corrosion moins bonne que l'inox 316 en milieu chloruré",
+        "Nécessite un traitement thermique adapté (précipitation)"
+      ],
+      "color": {
+        "diffuse": [
+          0.62,
+          0.67,
+          0.7
+        ],
+        "ambient": [
+          0.35,
+          0.38,
+          0.4
+        ],
+        "specular": [
+          0.95,
+          0.95,
+          0.95
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.25,
+        "transparency": 0.0
+      }
+    },
+    "LAITON": {
+      "name": "Brass (CuZn)",
+      "code": "CuZn37 / CW508L",
+      "description": "Copper-zinc alloy (approx. 37% Zn)",
+      "shear_modulus_G": {
+        "value": 39000,
+        "unit": "N/mm²",
+        "value_daN": 3900,
+        "unit_daN": "daN/mm²",
+        "note": "Standard value at 20°C"
+      },
+      "tensile_strength_Rm": {
+        "description": "Tensile strength as function of wire diameter",
+        "unit": "N/mm²",
+        "unit_daN": "daN/mm²",
+        "table": [
+          {
+            "d_min": 0.1,
+            "d_max": 0.5,
+            "Rm_MPa": 650,
+            "Rm_daN": 65.0
+          },
+          {
+            "d_min": 0.5,
+            "d_max": 1.0,
+            "Rm_MPa": 600,
+            "Rm_daN": 60.0
+          },
+          {
+            "d_min": 1.0,
+            "d_max": 2.0,
+            "Rm_MPa": 550,
+            "Rm_daN": 55.0
+          },
+          {
+            "d_min": 2.0,
+            "d_max": 3.0,
+            "Rm_MPa": 520,
+            "Rm_daN": 52.0
+          },
+          {
+            "d_min": 3.0,
+            "d_max": 5.0,
+            "Rm_MPa": 500,
+            "Rm_daN": 50.0
+          },
+          {
+            "d_min": 5.0,
+            "d_max": 8.0,
+            "Rm_MPa": 480,
+            "Rm_daN": 48.0
+          },
+          {
+            "d_min": 8.0,
+            "d_max": 12.0,
+            "Rm_MPa": 450,
+            "Rm_daN": 45.0
+          }
+        ]
+      },
+      "stress_limits": {
+        "static_light": {
+          "factor": 0.45,
+          "description": "Light static service - Low usage (< 10k cycles)"
+        },
+        "static": {
+          "factor": 0.35,
+          "description": "Static service"
+        },
+        "medium_dynamic": {
+          "factor": 0.25,
+          "description": "Medium service - Slow dynamic"
+        },
+        "severe_dynamic": {
+          "factor": 0.18,
+          "description": "Severe service - Fast dynamic"
+        },
+        "set_solid": {
+          "factor": 0.6,
+          "description": "Allowable stress at solid height"
+        }
+      },
+      "temperature_range": {
+        "min": -100,
+        "max": 100,
+        "unit": "°C",
+        "note": "Stabilité limitée au-delà de 100°C"
+      },
+      "conductivity": {
+        "electrical": "Excellente (28% IACS)",
+        "thermal": "Excellente (120 W/m·K)",
+        "electrical_iacs": "28",
+        "thermal_wmk": "120"
+      },
+      "corrosion_resistance": "Good (except prolonged salt spray)",
+      "magnetic": false,
+      "atex_compatible": true,
+      "applications": [
+        "ATEX zones (spark-proof)",
+        "Low current electrical contacts",
+        "Instrumentation",
+        "Decorative hardware and fasteners",
+        "Non-corrosive environments"
+      ],
+      "special_notes": [
+        "ATEX: Non-magnetic and spark-proof",
+        "Sensible à la corrosion sous tension",
+        "Éviter le contact avec l'ammoniaque",
+        "Peut présenter dézincification en milieu humide",
+        "Bon usinage"
+      ],
+      "electrochemical_potential": {
+        "value": -0.34,
+        "unit": "V vs SHE",
+        "note": "À considérer pour éviter couples galvaniques"
+      },
+      "color": {
+        "diffuse": [
+          0.78,
+          0.56,
+          0.11
+        ],
+        "ambient": [
+          0.33,
+          0.22,
+          0.03
+        ],
+        "specular": [
+          0.99,
+          0.94,
+          0.8
+        ],
+        "emissive": [
+          0.0,
+          0.0,
+          0.0
+        ],
+        "shininess": 0.22,
+        "transparency": 0.0
+      }
+    }
+  },
+  "work_types": {
+    "CHARGE STATIQUE LEGERE": {
+      "name": "Charge statique legere",
+      "description": "Ressort peu sollicite, charge stable (< 10,000 cycles)",
+      "stress_factor_key": "static_light",
+      "cycles": "< 10,000",
+      "examples": [
+        "Mecanisme d'ouverture de boite",
+        "Ressort de rappel simple",
+        "Applications statiques occasionnelles"
+      ]
+    },
+    "SERVICE STATIQUE": {
+      "name": "Service statique",
+      "description": "Charge stable ou quasi-statique (10,000 - 50,000 cycles)",
+      "stress_factor_key": "static",
+      "cycles": "10,000 - 50,000",
+      "examples": [
+        "Ressort de maintien",
+        "Charge constante",
+        "Applications peu dynamiques"
+      ]
+    },
+    "SERVICE MOYEN - DYNAMIQUE LENT": {
+      "name": "Service moyen - Dynamique lent",
+      "description": "Usage courant, charge variable (50,000 - 200,000 cycles)",
+      "stress_factor_key": "medium_dynamic",
+      "cycles": "50,000 - 200,000",
+      "examples": [
+        "Suspension de siege",
+        "Pedale d'embrayage",
+        "Mecanisme repetitif standard"
+      ]
+    },
+    "SERVICE SEVERE - DYNAMIQUE RAPIDE": {
+      "name": "Service severe - Dynamique rapide",
+      "description": "Conditions extremes, haute frequence (> 200,000 cycles)",
+      "stress_factor_key": "severe_dynamic",
+      "cycles": "> 200,000",
+      "examples": [
+        "Ressorts ATEX (atmospheres explosives)",
+        "Applications marines",
+        "Suspension automobile intensive",
+        "Valve moteur",
+        "Ressorts haute temperature"
+      ]
+    }
+  }
+}

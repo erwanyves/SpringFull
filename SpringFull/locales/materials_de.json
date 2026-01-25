@@ -1,0 +1,407 @@
+{
+  "metadata": {
+    "version": "1.5.0",
+    "language": "de",
+    "description": "Federwerkstoff-Datenbank - Deutsch",
+    "note": "German translation - Derived from materials_en.json"
+  },
+  
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "display_name": "Duplex-Edelstahl",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Austenitisch-ferritischer Edelstahl. Ausgezeichnete mechanische und Korrosionsbeständigkeit.",
+      "corrosion_resistance": "Ausgezeichnet (überlegen gegenüber 304/316)",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Passivierung"
+      ],
+      "temperature_range": {"min": -50, "max": 250},
+      "applications": [
+        "Offshore und Marine",
+        "Chemische Industrie",
+        "Hohe mechanische und Korrosionsbeständigkeit"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Leicht ferromagnetisch",
+        "Überlegene Beständigkeit gegenüber 304/316 Edelstahl",
+        "Ausgezeichnete Leistung in Meeresumgebung"
+      ]
+    },
+
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "display_name": "Patentiert gezogener Federstahl (DH)",
+      "code": "EN 10270-1 DH",
+      "description": "Unlegierter, hart gezogener Stahldraht für Druckfedern allgemeiner Verwendung.",
+      "corrosion_resistance": "Schlecht (erfordert Schutz)",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Phosphatieren",
+        "Verzinken",
+        "Ölen"
+      ],
+      "temperature_range": {"min": -30, "max": 120},
+      "applications": [
+        "Druckfedern für allgemeine Zwecke",
+        "Mechanische Federn für Industrieanlagen",
+        "Steuer- und Rückstellfedern"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Wirtschaftlich für Standardanwendungen",
+        "Erfordert Korrosionsschutz",
+        "Gute Ermüdungsfestigkeit"
+      ]
+    },
+
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "display_name": "316 Edelstahl-Federdraht",
+      "code": "EN 10270-3 (1.4401)",
+      "description": "Austenitischer Edelstahl Typ 316 für Federn in aggressiven Umgebungen.",
+      "corrosion_resistance": "Ausgezeichnet (Meerwasser, chloridhaltige Umgebungen)",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Passivierung",
+        "Elektropolieren"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Federn in Meeresumgebung",
+        "Chemische und petrochemische Industrie",
+        "Lebensmittel- und Medizintechnik"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Niedrig"
+      },
+      "notes": [
+        "Chloridbeständig",
+        "Unmagnetisch",
+        "Ausgezeichnete Leistung in aggressiven Umgebungen"
+      ]
+    },
+
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "display_name": "SiCr-Federstahl",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Silizium-Chrom-legierter Stahldraht, ölvergütet, für Hochleistungsfedern.",
+      "corrosion_resistance": "Schlecht (erfordert Schutz)",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Phosphatieren",
+        "Lackieren",
+        "Ölen"
+      ],
+      "temperature_range": {"min": -40, "max": 200},
+      "applications": [
+        "Automobilfedern",
+        "Statische Industriefedern",
+        "Federn mit großem Querschnitt"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Sehr hohe mechanische Festigkeit",
+        "Ausgezeichnete Ermüdungsfestigkeit",
+        "Ideal für schwere Lasten"
+      ]
+    },
+
+    "ACIER RESSORT TREMPE HUILE": {
+      "display_name": "Ölvergüteter Federstahl",
+      "code": "EN 10270-2",
+      "description": "Ölvergüteter Federstahldraht (FDC/FDSiCr-Güten).",
+      "corrosion_resistance": "Schlecht (geschützt durch Lack, Öl oder Zink)",
+      "surface_treatments": [
+        "Verzinken",
+        "Phosphatieren",
+        "Lackieren",
+        "Ölen"
+      ],
+      "temperature_range": {"min": -40, "max": 180},
+      "applications": [
+        "Aufhängungsfedern",
+        "Druckfedern mit großem Durchmesser",
+        "Federn für Industriemaschinen"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Für Federn mit großem Durchmesser",
+        "Hohe mechanische Festigkeit",
+        "Erfordert Korrosionsschutz"
+      ]
+    },
+
+    "BRONZE ALUMINIUM": {
+      "display_name": "Aluminiumbronze",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Kupfer-Aluminium-Eisen-Legierung (10% Al, 5% Fe). Ausgezeichnete Meeresbeständigkeit.",
+      "corrosion_resistance": "Ausgezeichnet (Meerwasser, Salzsprühnebel)",
+      "surface_treatments": [
+        "Nicht erforderlich"
+      ],
+      "temperature_range": {"min": -100, "max": 250},
+      "applications": [
+        "Meeresumgebung (Schiff, Offshore)",
+        "Salzsprühnebel",
+        "ATEX-Zonen",
+        "Unterwasseranwendungen",
+        "Chemische Industrie"
+      ],
+      "conductivity": {
+        "electrical": "Mittel (15% IACS)",
+        "thermal": "Gut"
+      },
+      "notes": [
+        "Funkenfrei (ATEX)",
+        "Ausgezeichnete mechanische Festigkeit",
+        "Meerwasserbeständig"
+      ]
+    },
+
+    "BRONZE BERYLLIUM": {
+      "display_name": "Berylliumkupfer",
+      "code": "CuBe2 / CW101C",
+      "description": "Kupfer-Beryllium-Legierung (1,8-2% Be). Unmagnetisch, ausgezeichnete Leitfähigkeit.",
+      "corrosion_resistance": "Sehr gut",
+      "surface_treatments": [
+        "Glas-/Keramikkugelstrahlen",
+        "Elektropolieren",
+        "Chemische Vernickelung",
+        "Vergolden",
+        "ACHTUNG: Bearbeitung in kontrollierter Umgebung (Be-Toxizität)"
+      ],
+      "temperature_range": {"min": -200, "max": 200},
+      "applications": [
+        "ATEX-Zonen (funkenfrei)",
+        "Hochleistungs-Elektrosteckverbinder",
+        "Präzisionsinstrumente",
+        "Luft- und Raumfahrt",
+        "Funkenfreies Werkzeug",
+        "Hochleistungsfedern"
+      ],
+      "conductivity": {
+        "electrical": "Gut (22% IACS nach Härtung)",
+        "thermal": "Gut"
+      },
+      "notes": [
+        "ERFORDERT Härtungs-Wärmebehandlung",
+        "Ausgezeichnete mechanische Eigenschaften + Leitfähigkeit",
+        "ATEX: Unmagnetisch und funkenfrei",
+        "ACHTUNG: Giftiger Be-Staub bei der Bearbeitung",
+        "Sehr hohe Kosten"
+      ]
+    },
+
+    "BRONZE PHOSPHOREUX": {
+      "display_name": "Phosphorbronze",
+      "code": "CuSn8 / CW453K",
+      "description": "Kupfer-Zinn-Phosphor-Legierung. Gute Ermüdungsfestigkeit, unmagnetisch.",
+      "corrosion_resistance": "Sehr gut (Meerwasser)",
+      "surface_treatments": [
+        "Passivierung",
+        "Brünieren"
+      ],
+      "temperature_range": {"min": -100, "max": 150},
+      "applications": [
+        "Meeresumgebungen",
+        "Elektrische Kontakte",
+        "Elektrische Anwendungen",
+        "Messinstrumente"
+      ],
+      "conductivity": {
+        "electrical": "Gut (15% IACS)",
+        "thermal": "Gut"
+      },
+      "notes": [
+        "Unmagnetisch",
+        "Ausgezeichnete Ermüdung",
+        "Gute Leitfähigkeit",
+        "Moderate Kosten"
+      ]
+    },
+
+    "CORDE A PIANO": {
+      "display_name": "Klaviersaitendraht",
+      "code": "EN 10270-1 SH",
+      "description": "Hochkohlenstoffstahl (0,70-1,00% C). Ausgezeichnetes Festigkeits-/Kostenverhältnis. Industriestandard.",
+      "corrosion_resistance": "Schlecht",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Phosphatieren",
+        "Verzinken",
+        "Vernickeln",
+        "Pulverbeschichtung"
+      ],
+      "temperature_range": {"min": -40, "max": 120},
+      "applications": [
+        "Präzisionsfedern",
+        "Allgemeine Industrie",
+        "Automobil",
+        "Haushaltsgeräte",
+        "Hohe mechanische Beanspruchung"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Häufigstes Material",
+        "Ausgezeichnetes Preis-Leistungs-Verhältnis",
+        "Erfordert Korrosionsschutz",
+        "Max. Temp: 120°C Dauerbetrieb"
+      ]
+    },
+
+    "CUPRO-NICKEL": {
+      "display_name": "Kupfer-Nickel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Kupfer-Nickel-Mangan-Legierung (30% Ni, 1% Mn). Außergewöhnliche Meeresbeständigkeit.",
+      "corrosion_resistance": "Außergewöhnlich (Meerwasser, Bewuchs)",
+      "surface_treatments": [
+        "Nicht erforderlich"
+      ],
+      "temperature_range": {"min": -100, "max": 300},
+      "applications": [
+        "Marine (Entsalzung, Offshore)",
+        "Bewuchsbeständigkeit",
+        "Meerwasser-Wärmetauscher",
+        "ATEX-Zonen",
+        "Chemische Industrie"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig (5% IACS)",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Natürliche Antifouling-Eigenschaften",
+        "Ausgezeichnete Meerwasserbeständigkeit",
+        "Unmagnetisch",
+        "Funkenfrei (ATEX)"
+      ]
+    },
+
+    "INCONEL 718": {
+      "display_name": "Inconel 718",
+      "code": "NiCr19NbMo / UNS N07718",
+      "description": "Ausscheidungsgehärtete Nickel-Chrom-Superlegierung. Sehr hohe Festigkeit bei Temperatur.",
+      "corrosion_resistance": "Ausgezeichnet",
+      "surface_treatments": [
+        "Nicht erforderlich"
+      ],
+      "temperature_range": {"min": -200, "max": 650},
+      "applications": [
+        "Luft- und Raumfahrt",
+        "Gasturbinen",
+        "Hochtemperaturanwendungen",
+        "Flugzeugtriebwerke",
+        "Kryogene Anwendungen"
+      ],
+      "conductivity": {
+        "electrical": "Mittel",
+        "thermal": "Mittel"
+      },
+      "notes": [
+        "Superlegierung mit höchster Festigkeit",
+        "Max. Temp: 650°C",
+        "Sehr hohe Kosten",
+        "Ausgezeichnete Kriechfestigkeit"
+      ]
+    },
+
+    "INOX": {
+      "display_name": "Edelstahl 302/304",
+      "code": "EN 10270-3 (1.4310)",
+      "description": "Austenitischer Edelstahl Typ 302/304. Gute allgemeine Korrosionsbeständigkeit.",
+      "corrosion_resistance": "Ausgezeichnet",
+      "surface_treatments": [
+        "Kugelstrahlen",
+        "Passivierung",
+        "Elektropolieren"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Korrosive Umgebungen",
+        "Lebensmittel und Medizin",
+        "Hoch-/Tieftemperatur",
+        "Feuchte oder chemische Atmosphäre"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Niedrig"
+      },
+      "notes": [
+        "Standard-Edelstahl",
+        "Leicht magnetisch nach Kaltumformung",
+        "Gute Ermüdungsfestigkeit"
+      ]
+    },
+
+    "INOX 17-7PH": {
+      "display_name": "Edelstahl 17-7 PH",
+      "code": "1.4568 / UNS S17700",
+      "description": "Ausscheidungshärtender Edelstahl. Hohe Festigkeit nach Wärmebehandlung.",
+      "corrosion_resistance": "Gut bis sehr gut",
+      "surface_treatments": [
+        "Passivierung"
+      ],
+      "temperature_range": {"min": -200, "max": 480},
+      "applications": [
+        "Hochleistungsfedern",
+        "Luft- und Raumfahrt",
+        "Hochtemperaturfedern",
+        "Präzisionsmechanismen"
+      ],
+      "conductivity": {
+        "electrical": "Niedrig",
+        "thermal": "Niedrig"
+      },
+      "notes": [
+        "Sehr hohe Festigkeit",
+        "Erfordert Wärmebehandlung",
+        "Ausgezeichnete Ermüdungslebensdauer",
+        "Unterlegen gegenüber 316 in chloridhaltigen Umgebungen"
+      ]
+    },
+
+    "LAITON": {
+      "display_name": "Messing",
+      "code": "CuZn37 / CW508L",
+      "description": "Kupfer-Zink-Legierung (37% Zn). Wirtschaftlich, gute Formbarkeit.",
+      "corrosion_resistance": "Gut (außer bei längerem Salzsprühnebel)",
+      "surface_treatments": [
+        "Vernickeln",
+        "Verchromen"
+      ],
+      "temperature_range": {"min": -100, "max": 100},
+      "applications": [
+        "ATEX-Zonen (funkenfrei)",
+        "Elektrische Kontakte niedriger Strom",
+        "Instrumentierung",
+        "Dekorative Beschläge"
+      ],
+      "conductivity": {
+        "electrical": "Gut (28% IACS)",
+        "thermal": "Gut"
+      },
+      "notes": [
+        "Niedrige Kosten",
+        "Leicht zu formen",
+        "Begrenzte Festigkeit",
+        "Unmagnetisch"
+      ]
+    }
+  }
+}

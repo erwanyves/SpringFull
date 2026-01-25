@@ -1,0 +1,83 @@
+{
+  "end_types": {
+    "description": "Types de spires extrêmes pour ressorts de compression selon EN 13906-1",
+    
+    "COUPEES": {
+      "name": "Extrémités coupées",
+      "code": "CUT",
+      "description": "Spires extrêmes coupées sans traitement - section tangente aux LCS",
+      "dead_coils": {
+        "minimum": 0,
+        "typical_range": [0, 1],
+        "note": "Théoriquement 0, mais peut être augmenté"
+      },
+      "grinding_required": false,
+      "sketch_z_formula": "d / 2",
+      "solid_height_formula": "(nt + 1) * d",
+      "nt_formula": "floor(4 * Lc_max / d) / 4 - 1",
+      "section_position": "tangente aux LCS"
+    },
+    
+    "MEULEES": {
+      "name": "Extrémités meulées",
+      "code": "GROUND",
+      "description": "Spires extrêmes meulées à plat - axe section dans plan XY des LCS",
+      "dead_coils": {
+        "minimum": 0,
+        "typical_range": [0, 1],
+        "note": "Meulage crée surface plane"
+      },
+      "grinding_required": true,
+      "sketch_z_formula": "0",
+      "solid_height_formula": "nt * d",
+      "nt_formula": "floor(4 * Lc_max / d) / 4",
+      "section_position": "axe dans plan LCS, coupé par Pocket"
+    },
+    
+    "RAPPROCHEES": {
+      "name": "Extrémités rapprochées",
+      "code": "CLOSED",
+      "description": "Spires extrêmes rapprochées sans meulage - section tangente aux LCS",
+      "dead_coils": {
+        "minimum": 2,
+        "typical_range": [2, 3],
+        "note": "1 spire morte minimum par face"
+      },
+      "grinding_required": false,
+      "sketch_z_formula": "nm * d + d / 2",
+      "solid_height_formula": "(nt + 1) * d",
+      "nt_formula": "floor(4 * Lc_max / d) / 4 - 1",
+      "section_position": "tangente aux LCS"
+    },
+    
+    "RAPPROCHEES_MEULEES": {
+      "name": "Extrémités rapprochées meulées",
+      "code": "CLOSED_GROUND",
+      "description": "Spires extrêmes rapprochées et meulées - axe section dans plan XY des LCS",
+      "dead_coils": {
+        "minimum": 2,
+        "typical_range": [2, 4],
+        "recommended": 2,
+        "note": "1 spire morte meulée minimum par face"
+      },
+      "grinding_required": true,
+      "sketch_z_formula": "nm * d",
+      "solid_height_formula": "nt * d",
+      "nt_formula": "floor(4 * Lc_max / d) / 4",
+      "section_position": "axe dans plan LCS, coupé par Pocket"
+    }
+  },
+  
+  "selection_order": ["COUPEES", "MEULEES", "RAPPROCHEES", "RAPPROCHEES_MEULEES"],
+  
+  "default_recommendation": {
+    "type": "RAPPROCHEES_MEULEES",
+    "reason": "Meilleur compromis qualité/prix pour la plupart des applications"
+  },
+  
+  "metadata": {
+    "version": "1.3.0",
+    "date": "2026-01",
+    "standards": ["EN 13906-1:2013"]
+  }
+}

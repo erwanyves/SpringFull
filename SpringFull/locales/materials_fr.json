@@ -1,0 +1,407 @@
+{
+  "metadata": {
+    "version": "1.5.0",
+    "language": "fr",
+    "description": "Base de données des matériaux pour ressorts - Français",
+    "note": "French translation - Derived from materials_en.json"
+  },
+  
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "display_name": "Acier inoxydable Duplex",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Acier inoxydable austéno-ferritique. Excellente résistance mécanique et à la corrosion.",
+      "corrosion_resistance": "Excellente (supérieure à 304/316)",
+      "surface_treatments": [
+        "Grenaillage",
+        "Passivation"
+      ],
+      "temperature_range": {"min": -50, "max": 250},
+      "applications": [
+        "Offshore et marine",
+        "Industries chimiques",
+        "Haute résistance mécanique et corrosion"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Faiblement ferromagnétique",
+        "Résistance supérieure aux inox 304/316",
+        "Excellente tenue en milieu marin"
+      ]
+    },
+
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "display_name": "Acier ressort dur tréfilé (DH)",
+      "code": "EN 10270-1 DH",
+      "description": "Fil d'acier non allié, tréfilé dur, pour ressorts de compression de service courant.",
+      "corrosion_resistance": "Faible (nécessite protection)",
+      "surface_treatments": [
+        "Grenaillage",
+        "Phosphatation",
+        "Zingage",
+        "Huilage"
+      ],
+      "temperature_range": {"min": -30, "max": 120},
+      "applications": [
+        "Ressorts de compression de service général",
+        "Ressorts mécaniques pour équipements industriels",
+        "Ressorts de commande et de rappel"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Économique pour applications courantes",
+        "Nécessite protection anticorrosion",
+        "Bonne résistance à la fatigue"
+      ]
+    },
+
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "display_name": "Inox 316 pour ressort",
+      "code": "EN 10270-3 (1.4401)",
+      "description": "Acier inoxydable austénitique type 316 pour ressorts en environnement agressif.",
+      "corrosion_resistance": "Excellente (eau de mer, milieux chlorés)",
+      "surface_treatments": [
+        "Grenaillage",
+        "Passivation",
+        "Électropolissage"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Ressorts en environnement marin",
+        "Industrie chimique et pétrochimique",
+        "Applications alimentaires et médicales"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Faible"
+      },
+      "notes": [
+        "Résistant aux chlorures",
+        "Amagnétique",
+        "Excellente tenue en milieu agressif"
+      ]
+    },
+
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "display_name": "Acier ressort SiCr",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Fil d'acier allié silicium-chrome, revenu à l'huile, pour ressorts haute performance.",
+      "corrosion_resistance": "Faible (nécessite protection)",
+      "surface_treatments": [
+        "Grenaillage",
+        "Phosphatation",
+        "Peinture",
+        "Huilage"
+      ],
+      "temperature_range": {"min": -40, "max": 200},
+      "applications": [
+        "Ressorts automobile",
+        "Ressorts industriels statiques",
+        "Ressorts de forte section"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Très haute résistance mécanique",
+        "Excellente résistance à la fatigue",
+        "Idéal pour fortes charges"
+      ]
+    },
+
+    "ACIER RESSORT TREMPE HUILE": {
+      "display_name": "Acier ressort trempé huile",
+      "code": "EN 10270-2",
+      "description": "Fil d'acier pour ressorts, trempé à l'huile (qualités FDC/FDSiCr).",
+      "corrosion_resistance": "Faible (protégé par peinture, huile ou zingage)",
+      "surface_treatments": [
+        "Zingage",
+        "Phosphatation",
+        "Peinture",
+        "Huilage"
+      ],
+      "temperature_range": {"min": -40, "max": 180},
+      "applications": [
+        "Ressorts de suspension",
+        "Ressorts de compression gros diamètre",
+        "Ressorts pour machines industrielles"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Pour ressorts de gros diamètre",
+        "Haute résistance mécanique",
+        "Nécessite protection anticorrosion"
+      ]
+    },
+
+    "BRONZE ALUMINIUM": {
+      "display_name": "Bronze d'aluminium",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Alliage cuivre-aluminium-fer (10% Al, 5% Fe). Excellente résistance marine.",
+      "corrosion_resistance": "Excellente (eau de mer, brouillard salin)",
+      "surface_treatments": [
+        "Aucun requis"
+      ],
+      "temperature_range": {"min": -100, "max": 250},
+      "applications": [
+        "Environnement marin (navire, offshore)",
+        "Brouillard salin",
+        "Zones ATEX",
+        "Applications sous-marines",
+        "Industrie chimique"
+      ],
+      "conductivity": {
+        "electrical": "Moyenne (15% IACS)",
+        "thermal": "Bonne"
+      },
+      "notes": [
+        "Anti-étincelles (ATEX)",
+        "Excellente résistance mécanique",
+        "Résistant à l'eau de mer"
+      ]
+    },
+
+    "BRONZE BERYLLIUM": {
+      "display_name": "Bronze béryllium",
+      "code": "CuBe2 / CW101C",
+      "description": "Alliage cuivre-béryllium (1.8-2% Be). Amagnétique, excellente conductivité.",
+      "corrosion_resistance": "Très bonne",
+      "surface_treatments": [
+        "Grenaillage billes verre/céramique",
+        "Polissage électrolytique",
+        "Nickelage chimique",
+        "Dorure",
+        "ATTENTION: Usinage en milieu contrôlé (toxicité Be)"
+      ],
+      "temperature_range": {"min": -200, "max": 200},
+      "applications": [
+        "Zones ATEX (anti-étincelles)",
+        "Connecteurs électriques haute performance",
+        "Instruments de précision",
+        "Aéronautique et spatial",
+        "Outillages anti-étincelles",
+        "Ressorts haute performance"
+      ],
+      "conductivity": {
+        "electrical": "Bonne (22% IACS après durcissement)",
+        "thermal": "Bonne"
+      },
+      "notes": [
+        "NÉCESSITE traitement thermique de durcissement",
+        "Excellentes propriétés mécaniques + conductivité",
+        "ATEX: Amagnétique et anti-étincelles",
+        "ATTENTION: Poussières de Be toxiques",
+        "Coût très élevé"
+      ]
+    },
+
+    "BRONZE PHOSPHOREUX": {
+      "display_name": "Bronze phosphoreux",
+      "code": "CuSn8 / CW453K",
+      "description": "Alliage cuivre-étain-phosphore. Bonne résistance fatigue, amagnétique.",
+      "corrosion_resistance": "Très bonne (eau de mer)",
+      "surface_treatments": [
+        "Passivation",
+        "Brunissage"
+      ],
+      "temperature_range": {"min": -100, "max": 150},
+      "applications": [
+        "Environnements marins",
+        "Contacts électriques",
+        "Applications électriques",
+        "Instruments de mesure"
+      ],
+      "conductivity": {
+        "electrical": "Bonne (15% IACS)",
+        "thermal": "Bonne"
+      },
+      "notes": [
+        "Amagnétique",
+        "Excellente fatigue",
+        "Bonne conductivité",
+        "Coût modéré"
+      ]
+    },
+
+    "CORDE A PIANO": {
+      "display_name": "Corde à piano",
+      "code": "EN 10270-1 SH",
+      "description": "Acier à haute teneur en carbone (0.70-1.00% C). Excellent rapport résistance/coût. Standard industriel.",
+      "corrosion_resistance": "Faible",
+      "surface_treatments": [
+        "Grenaillage",
+        "Phosphatation",
+        "Zingage",
+        "Nickelage",
+        "Peinture poudre"
+      ],
+      "temperature_range": {"min": -40, "max": 120},
+      "applications": [
+        "Ressorts de précision",
+        "Industrie générale",
+        "Automobile",
+        "Électroménager",
+        "Haute sollicitation mécanique"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Matériau le plus courant",
+        "Excellent rapport qualité/prix",
+        "Nécessite protection anticorrosion",
+        "Temp. max: 120°C en continu"
+      ]
+    },
+
+    "CUPRO-NICKEL": {
+      "display_name": "Cupro-nickel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Alliage cuivre-nickel-manganèse (30% Ni, 1% Mn). Exceptionnelle résistance marine.",
+      "corrosion_resistance": "Exceptionnelle (eau de mer, biofouling)",
+      "surface_treatments": [
+        "Aucun requis"
+      ],
+      "temperature_range": {"min": -100, "max": 300},
+      "applications": [
+        "Marine (dessalement, offshore)",
+        "Résistance au biofouling",
+        "Échangeurs thermiques eau de mer",
+        "Zones ATEX",
+        "Industrie chimique"
+      ],
+      "conductivity": {
+        "electrical": "Faible (5% IACS)",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Anti-biofouling naturel",
+        "Excellente résistance eau de mer",
+        "Amagnétique",
+        "Anti-étincelles (ATEX)"
+      ]
+    },
+
+    "INCONEL 718": {
+      "display_name": "Inconel 718",
+      "code": "NiCr19NbMo / UNS N07718",
+      "description": "Superalliage nickel-chrome durci par précipitation. Très haute résistance à chaud.",
+      "corrosion_resistance": "Excellente",
+      "surface_treatments": [
+        "Aucun requis"
+      ],
+      "temperature_range": {"min": -200, "max": 650},
+      "applications": [
+        "Aéronautique et spatial",
+        "Turbines à gaz",
+        "Applications haute température",
+        "Moteurs aéronautiques",
+        "Applications cryogéniques"
+      ],
+      "conductivity": {
+        "electrical": "Moyenne",
+        "thermal": "Moyenne"
+      },
+      "notes": [
+        "Superalliage le plus résistant",
+        "Temp. max: 650°C",
+        "Coût très élevé",
+        "Excellente résistance au fluage"
+      ]
+    },
+
+    "INOX": {
+      "display_name": "Inox 302/304",
+      "code": "EN 10270-3 (1.4310)",
+      "description": "Acier inoxydable austénitique type 302/304. Bonne résistance corrosion générale.",
+      "corrosion_resistance": "Excellente",
+      "surface_treatments": [
+        "Grenaillage",
+        "Passivation",
+        "Électropolissage"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Environnements corrosifs",
+        "Alimentaire et médical",
+        "Haute/basse température",
+        "Ambiance humide ou chimique"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Faible"
+      },
+      "notes": [
+        "Inox standard",
+        "Légèrement magnétique après écrouissage",
+        "Bonne résistance fatigue"
+      ]
+    },
+
+    "INOX 17-7PH": {
+      "display_name": "Inox 17-7 PH",
+      "code": "1.4568 / UNS S17700",
+      "description": "Acier inoxydable à durcissement structural. Haute résistance après traitement thermique.",
+      "corrosion_resistance": "Bonne à très bonne",
+      "surface_treatments": [
+        "Passivation"
+      ],
+      "temperature_range": {"min": -200, "max": 480},
+      "applications": [
+        "Ressorts haute performance",
+        "Aéronautique et spatial",
+        "Ressorts haute température",
+        "Mécanismes de précision"
+      ],
+      "conductivity": {
+        "electrical": "Faible",
+        "thermal": "Faible"
+      },
+      "notes": [
+        "Très haute résistance",
+        "Nécessite traitement thermique",
+        "Excellente durée de vie en fatigue",
+        "Inférieur au 316 en milieux chlorés"
+      ]
+    },
+
+    "LAITON": {
+      "display_name": "Laiton",
+      "code": "CuZn37 / CW508L",
+      "description": "Alliage cuivre-zinc (37% Zn). Économique, bonne formabilité.",
+      "corrosion_resistance": "Bonne (sauf brouillard salin prolongé)",
+      "surface_treatments": [
+        "Nickelage",
+        "Chromage"
+      ],
+      "temperature_range": {"min": -100, "max": 100},
+      "applications": [
+        "Zones ATEX (anti-étincelles)",
+        "Contacts électriques faible courant",
+        "Instrumentation",
+        "Décoration et visserie"
+      ],
+      "conductivity": {
+        "electrical": "Bonne (28% IACS)",
+        "thermal": "Bonne"
+      },
+      "notes": [
+        "Faible coût",
+        "Facile à former",
+        "Résistance limitée",
+        "Amagnétique"
+      ]
+    }
+  }
+}

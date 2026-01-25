@@ -1,0 +1,407 @@
+{
+  "metadata": {
+    "version": "1.5.0",
+    "language": "es",
+    "description": "Base de datos de materiales para muelles - Español",
+    "note": "Spanish translation - Derived from materials_en.json"
+  },
+  
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "display_name": "Acero inoxidable Dúplex",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Acero inoxidable austenítico-ferrítico. Excelente resistencia mecánica y a la corrosión.",
+      "corrosion_resistance": "Excelente (superior a 304/316)",
+      "surface_treatments": [
+        "Granallado",
+        "Pasivación"
+      ],
+      "temperature_range": {"min": -50, "max": 250},
+      "applications": [
+        "Offshore y marino",
+        "Industrias químicas",
+        "Alta resistencia mecánica y a la corrosión"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Ligeramente ferromagnético",
+        "Resistencia superior al acero inoxidable 304/316",
+        "Excelente rendimiento en ambiente marino"
+      ]
+    },
+
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "display_name": "Acero para muelles trefilado duro (DH)",
+      "code": "EN 10270-1 DH",
+      "description": "Alambre de acero no aleado trefilado duro para muelles de compresión de uso general.",
+      "corrosion_resistance": "Pobre (requiere protección)",
+      "surface_treatments": [
+        "Granallado",
+        "Fosfatado",
+        "Zincado",
+        "Aceitado"
+      ],
+      "temperature_range": {"min": -30, "max": 120},
+      "applications": [
+        "Muelles de compresión de uso general",
+        "Muelles mecánicos para equipos industriales",
+        "Muelles de control y retorno"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Económico para aplicaciones estándar",
+        "Requiere protección anticorrosión",
+        "Buena resistencia a la fatiga"
+      ]
+    },
+
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "display_name": "Acero inoxidable 316 para muelles",
+      "code": "EN 10270-3 (1.4401)",
+      "description": "Acero inoxidable austenítico tipo 316 para muelles en ambientes agresivos.",
+      "corrosion_resistance": "Excelente (agua de mar, ambientes clorados)",
+      "surface_treatments": [
+        "Granallado",
+        "Pasivación",
+        "Electropulido"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Muelles en ambiente marino",
+        "Industria química y petroquímica",
+        "Aplicaciones alimentarias y médicas"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Baja"
+      },
+      "notes": [
+        "Resistente a los cloruros",
+        "No magnético",
+        "Excelente rendimiento en ambientes agresivos"
+      ]
+    },
+
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "display_name": "Acero para muelles SiCr",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Alambre de acero aleado silicio-cromo, templado en aceite, para muelles de alto rendimiento.",
+      "corrosion_resistance": "Pobre (requiere protección)",
+      "surface_treatments": [
+        "Granallado",
+        "Fosfatado",
+        "Pintura",
+        "Aceitado"
+      ],
+      "temperature_range": {"min": -40, "max": 200},
+      "applications": [
+        "Muelles de automoción",
+        "Muelles industriales estáticos",
+        "Muelles de sección gruesa"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Muy alta resistencia mecánica",
+        "Excelente resistencia a la fatiga",
+        "Ideal para cargas pesadas"
+      ]
+    },
+
+    "ACIER RESSORT TREMPE HUILE": {
+      "display_name": "Acero para muelles templado en aceite",
+      "code": "EN 10270-2",
+      "description": "Alambre de acero para muelles templado en aceite (grados FDC/FDSiCr).",
+      "corrosion_resistance": "Pobre (protegido con pintura, aceite o zinc)",
+      "surface_treatments": [
+        "Zincado",
+        "Fosfatado",
+        "Pintura",
+        "Aceitado"
+      ],
+      "temperature_range": {"min": -40, "max": 180},
+      "applications": [
+        "Muelles de suspensión",
+        "Muelles de compresión de gran diámetro",
+        "Muelles para maquinaria industrial"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Para muelles de gran diámetro",
+        "Alta resistencia mecánica",
+        "Requiere protección anticorrosión"
+      ]
+    },
+
+    "BRONZE ALUMINIUM": {
+      "display_name": "Bronce de aluminio",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Aleación cobre-aluminio-hierro (10% Al, 5% Fe). Excelente resistencia marina.",
+      "corrosion_resistance": "Excelente (agua de mar, niebla salina)",
+      "surface_treatments": [
+        "No requerido"
+      ],
+      "temperature_range": {"min": -100, "max": 250},
+      "applications": [
+        "Ambiente marino (buques, offshore)",
+        "Niebla salina",
+        "Zonas ATEX",
+        "Aplicaciones submarinas",
+        "Industria química"
+      ],
+      "conductivity": {
+        "electrical": "Moderada (15% IACS)",
+        "thermal": "Buena"
+      },
+      "notes": [
+        "Antichispa (ATEX)",
+        "Excelente resistencia mecánica",
+        "Resistente al agua de mar"
+      ]
+    },
+
+    "BRONZE BERYLLIUM": {
+      "display_name": "Cobre berilio",
+      "code": "CuBe2 / CW101C",
+      "description": "Aleación cobre-berilio (1,8-2% Be). No magnético, excelente conductividad.",
+      "corrosion_resistance": "Muy buena",
+      "surface_treatments": [
+        "Granallado con perlas de vidrio/cerámica",
+        "Electropulido",
+        "Niquelado químico",
+        "Dorado",
+        "ADVERTENCIA: Mecanizado en ambiente controlado (toxicidad del Be)"
+      ],
+      "temperature_range": {"min": -200, "max": 200},
+      "applications": [
+        "Zonas ATEX (antichispa)",
+        "Conectores eléctricos de alto rendimiento",
+        "Instrumentos de precisión",
+        "Aeroespacial",
+        "Herramientas antichispa",
+        "Muelles de alto rendimiento"
+      ],
+      "conductivity": {
+        "electrical": "Buena (22% IACS después del endurecimiento)",
+        "thermal": "Buena"
+      },
+      "notes": [
+        "REQUIERE tratamiento térmico de endurecimiento",
+        "Excelentes propiedades mecánicas + conductividad",
+        "ATEX: No magnético y antichispa",
+        "ADVERTENCIA: Polvo de Be tóxico durante el mecanizado",
+        "Coste muy elevado"
+      ]
+    },
+
+    "BRONZE PHOSPHOREUX": {
+      "display_name": "Bronce fosforoso",
+      "code": "CuSn8 / CW453K",
+      "description": "Aleación cobre-estaño-fósforo. Buena resistencia a la fatiga, no magnético.",
+      "corrosion_resistance": "Muy buena (agua de mar)",
+      "surface_treatments": [
+        "Pasivación",
+        "Pavonado"
+      ],
+      "temperature_range": {"min": -100, "max": 150},
+      "applications": [
+        "Ambientes marinos",
+        "Contactos eléctricos",
+        "Aplicaciones eléctricas",
+        "Instrumentos de medición"
+      ],
+      "conductivity": {
+        "electrical": "Buena (15% IACS)",
+        "thermal": "Buena"
+      },
+      "notes": [
+        "No magnético",
+        "Excelente resistencia a la fatiga",
+        "Buena conductividad",
+        "Coste moderado"
+      ]
+    },
+
+    "CORDE A PIANO": {
+      "display_name": "Cuerda de piano",
+      "code": "EN 10270-1 SH",
+      "description": "Acero de alto carbono (0,70-1,00% C). Excelente relación resistencia/coste. Estándar industrial.",
+      "corrosion_resistance": "Pobre",
+      "surface_treatments": [
+        "Granallado",
+        "Fosfatado",
+        "Zincado",
+        "Niquelado",
+        "Recubrimiento en polvo"
+      ],
+      "temperature_range": {"min": -40, "max": 120},
+      "applications": [
+        "Muelles de precisión",
+        "Industria general",
+        "Automoción",
+        "Electrodomésticos",
+        "Alta solicitación mecánica"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Material más común",
+        "Excelente relación calidad/precio",
+        "Requiere protección anticorrosión",
+        "Temp. máx: 120°C en continuo"
+      ]
+    },
+
+    "CUPRO-NICKEL": {
+      "display_name": "Cuproníquel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Aleación cobre-níquel-manganeso (30% Ni, 1% Mn). Excepcional resistencia marina.",
+      "corrosion_resistance": "Excepcional (agua de mar, bioincrustación)",
+      "surface_treatments": [
+        "No requerido"
+      ],
+      "temperature_range": {"min": -100, "max": 300},
+      "applications": [
+        "Marina (desalinización, offshore)",
+        "Resistencia a la bioincrustación",
+        "Intercambiadores de calor de agua de mar",
+        "Zonas ATEX",
+        "Industria química"
+      ],
+      "conductivity": {
+        "electrical": "Baja (5% IACS)",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Anti-bioincrustación natural",
+        "Excelente resistencia al agua de mar",
+        "No magnético",
+        "Antichispa (ATEX)"
+      ]
+    },
+
+    "INCONEL 718": {
+      "display_name": "Inconel 718",
+      "code": "NiCr19NbMo / UNS N07718",
+      "description": "Superaleación de níquel-cromo endurecida por precipitación. Muy alta resistencia a temperatura.",
+      "corrosion_resistance": "Excelente",
+      "surface_treatments": [
+        "No requerido"
+      ],
+      "temperature_range": {"min": -200, "max": 650},
+      "applications": [
+        "Aeroespacial",
+        "Turbinas de gas",
+        "Aplicaciones de alta temperatura",
+        "Motores aeronáuticos",
+        "Aplicaciones criogénicas"
+      ],
+      "conductivity": {
+        "electrical": "Moderada",
+        "thermal": "Moderada"
+      },
+      "notes": [
+        "Superaleación de mayor resistencia",
+        "Temp. máx: 650°C",
+        "Coste muy elevado",
+        "Excelente resistencia a la fluencia"
+      ]
+    },
+
+    "INOX": {
+      "display_name": "Inoxidable 302/304",
+      "code": "EN 10270-3 (1.4310)",
+      "description": "Acero inoxidable austenítico tipo 302/304. Buena resistencia general a la corrosión.",
+      "corrosion_resistance": "Excelente",
+      "surface_treatments": [
+        "Granallado",
+        "Pasivación",
+        "Electropulido"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Ambientes corrosivos",
+        "Alimentación y medicina",
+        "Alta/baja temperatura",
+        "Atmósfera húmeda o química"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Baja"
+      },
+      "notes": [
+        "Acero inoxidable estándar",
+        "Ligeramente magnético tras trabajo en frío",
+        "Buena resistencia a la fatiga"
+      ]
+    },
+
+    "INOX 17-7PH": {
+      "display_name": "Inoxidable 17-7 PH",
+      "code": "1.4568 / UNS S17700",
+      "description": "Acero inoxidable endurecido por precipitación. Alta resistencia tras tratamiento térmico.",
+      "corrosion_resistance": "Buena a muy buena",
+      "surface_treatments": [
+        "Pasivación"
+      ],
+      "temperature_range": {"min": -200, "max": 480},
+      "applications": [
+        "Muelles de alto rendimiento",
+        "Aeroespacial",
+        "Muelles de alta temperatura",
+        "Mecanismos de precisión"
+      ],
+      "conductivity": {
+        "electrical": "Baja",
+        "thermal": "Baja"
+      },
+      "notes": [
+        "Muy alta resistencia",
+        "Requiere tratamiento térmico",
+        "Excelente vida a fatiga",
+        "Inferior al 316 en ambientes clorados"
+      ]
+    },
+
+    "LAITON": {
+      "display_name": "Latón",
+      "code": "CuZn37 / CW508L",
+      "description": "Aleación cobre-zinc (37% Zn). Económico, buena conformabilidad.",
+      "corrosion_resistance": "Buena (excepto niebla salina prolongada)",
+      "surface_treatments": [
+        "Niquelado",
+        "Cromado"
+      ],
+      "temperature_range": {"min": -100, "max": 100},
+      "applications": [
+        "Zonas ATEX (antichispa)",
+        "Contactos eléctricos de baja corriente",
+        "Instrumentación",
+        "Herrajes decorativos"
+      ],
+      "conductivity": {
+        "electrical": "Buena (28% IACS)",
+        "thermal": "Buena"
+      },
+      "notes": [
+        "Bajo coste",
+        "Fácil de conformar",
+        "Resistencia limitada",
+        "No magnético"
+      ]
+    }
+  }
+}

@@ -1,0 +1,407 @@
+{
+  "metadata": {
+    "version": "1.5.0",
+    "language": "en",
+    "description": "Spring materials database - English",
+    "note": "Reference language file - All translations derive from this file"
+  },
+  
+  "materials": {
+    "ACIER INOX DUPLEX": {
+      "display_name": "Duplex Stainless Steel",
+      "code": "1.4462 (X2CrNiMoN22-5-3)",
+      "description": "Austenitic-ferritic stainless steel. Excellent mechanical and corrosion resistance.",
+      "corrosion_resistance": "Excellent (superior to 304/316)",
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation"
+      ],
+      "temperature_range": {"min": -50, "max": 250},
+      "applications": [
+        "Offshore and marine",
+        "Chemical industries",
+        "High mechanical and corrosion resistance"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Slightly ferromagnetic",
+        "Superior resistance to 304/316 stainless",
+        "Excellent marine environment performance"
+      ]
+    },
+
+    "ACIER RESSORT DUR TIRE (EN 10270-1 DH)": {
+      "display_name": "Hard drawn spring steel (DH)",
+      "code": "EN 10270-1 DH",
+      "description": "Non-alloyed hard drawn steel wire for general purpose compression springs.",
+      "corrosion_resistance": "Poor (requires protection)",
+      "surface_treatments": [
+        "Shot peening",
+        "Phosphating",
+        "Zinc plating",
+        "Oiling"
+      ],
+      "temperature_range": {"min": -30, "max": 120},
+      "applications": [
+        "General purpose compression springs",
+        "Mechanical springs for industrial equipment",
+        "Control and return springs"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Economical for standard applications",
+        "Requires corrosion protection",
+        "Good fatigue resistance"
+      ]
+    },
+
+    "ACIER RESSORT INOX 316 (EN 10270-3 1.4401)": {
+      "display_name": "316 Stainless spring steel",
+      "code": "EN 10270-3 (1.4401)",
+      "description": "Type 316 austenitic stainless steel for springs in aggressive environments.",
+      "corrosion_resistance": "Excellent (seawater, chloride environments)",
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation",
+        "Electropolishing"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Springs in marine environment",
+        "Chemical and petrochemical industry",
+        "Food and medical applications"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Low"
+      },
+      "notes": [
+        "Chloride resistant",
+        "Non-magnetic",
+        "Excellent performance in aggressive environments"
+      ]
+    },
+
+    "ACIER RESSORT SI CR (EN 10270-2 FD SiCr)": {
+      "display_name": "SiCr spring steel",
+      "code": "EN 10270-2 FD SiCr",
+      "description": "Silicon-chromium alloy steel wire, oil tempered, for high performance springs.",
+      "corrosion_resistance": "Poor (requires protection)",
+      "surface_treatments": [
+        "Shot peening",
+        "Phosphating",
+        "Painting",
+        "Oiling"
+      ],
+      "temperature_range": {"min": -40, "max": 200},
+      "applications": [
+        "Automotive springs",
+        "Static industrial springs",
+        "Heavy section springs"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Very high mechanical strength",
+        "Excellent fatigue resistance",
+        "Ideal for heavy loads"
+      ]
+    },
+
+    "ACIER RESSORT TREMPE HUILE": {
+      "display_name": "Oil tempered spring steel",
+      "code": "EN 10270-2",
+      "description": "Oil tempered spring steel wire (FDC/FDSiCr grades).",
+      "corrosion_resistance": "Poor (protected by paint, oil or zinc)",
+      "surface_treatments": [
+        "Zinc plating",
+        "Phosphating",
+        "Painting",
+        "Oiling"
+      ],
+      "temperature_range": {"min": -40, "max": 180},
+      "applications": [
+        "Suspension springs",
+        "Large diameter compression springs",
+        "Industrial machinery springs"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "For large diameter springs",
+        "High mechanical strength",
+        "Requires corrosion protection"
+      ]
+    },
+
+    "BRONZE ALUMINIUM": {
+      "display_name": "Aluminum bronze",
+      "code": "CuAl10Fe / CW307G",
+      "description": "Copper-aluminum-iron alloy (10% Al, 5% Fe). Excellent marine resistance.",
+      "corrosion_resistance": "Excellent (seawater, salt spray)",
+      "surface_treatments": [
+        "None required"
+      ],
+      "temperature_range": {"min": -100, "max": 250},
+      "applications": [
+        "Marine environment (ship, offshore)",
+        "Salt spray",
+        "ATEX zones",
+        "Underwater applications",
+        "Chemical industry"
+      ],
+      "conductivity": {
+        "electrical": "Moderate (15% IACS)",
+        "thermal": "Good"
+      },
+      "notes": [
+        "Spark-proof (ATEX)",
+        "Excellent mechanical strength",
+        "Seawater resistant"
+      ]
+    },
+
+    "BRONZE BERYLLIUM": {
+      "display_name": "Beryllium copper",
+      "code": "CuBe2 / CW101C",
+      "description": "Copper-beryllium alloy (1.8-2% Be). Non-magnetic, excellent conductivity.",
+      "corrosion_resistance": "Very good",
+      "surface_treatments": [
+        "Glass/ceramic bead blasting",
+        "Electropolishing",
+        "Chemical nickel plating",
+        "Gold plating",
+        "WARNING: Machining in controlled environment (Be toxicity)"
+      ],
+      "temperature_range": {"min": -200, "max": 200},
+      "applications": [
+        "ATEX zones (spark-proof)",
+        "High performance electrical connectors",
+        "Precision instruments",
+        "Aerospace and space",
+        "Spark-proof tooling",
+        "High performance springs"
+      ],
+      "conductivity": {
+        "electrical": "Good (22% IACS after hardening)",
+        "thermal": "Good"
+      },
+      "notes": [
+        "REQUIRES hardening heat treatment",
+        "Excellent mechanical properties + conductivity",
+        "ATEX: Non-magnetic and spark-proof",
+        "WARNING: Toxic Be dust during machining",
+        "Very high cost"
+      ]
+    },
+
+    "BRONZE PHOSPHOREUX": {
+      "display_name": "Phosphor bronze",
+      "code": "CuSn8 / CW453K",
+      "description": "Copper-tin-phosphorus alloy. Good fatigue resistance, non-magnetic.",
+      "corrosion_resistance": "Very good (seawater)",
+      "surface_treatments": [
+        "Passivation",
+        "Burnishing"
+      ],
+      "temperature_range": {"min": -100, "max": 150},
+      "applications": [
+        "Marine environments",
+        "Electrical contacts",
+        "Electrical applications",
+        "Measuring instruments"
+      ],
+      "conductivity": {
+        "electrical": "Good (15% IACS)",
+        "thermal": "Good"
+      },
+      "notes": [
+        "Non-magnetic",
+        "Excellent fatigue",
+        "Good conductivity",
+        "Moderate cost"
+      ]
+    },
+
+    "CORDE A PIANO": {
+      "display_name": "Music wire",
+      "code": "EN 10270-1 SH",
+      "description": "High carbon steel (0.70-1.00% C). Excellent strength/cost ratio. Industry standard.",
+      "corrosion_resistance": "Poor",
+      "surface_treatments": [
+        "Shot peening",
+        "Phosphating",
+        "Zinc plating",
+        "Nickel plating",
+        "Powder coating"
+      ],
+      "temperature_range": {"min": -40, "max": 120},
+      "applications": [
+        "Precision springs",
+        "General industry",
+        "Automotive",
+        "Appliances",
+        "High mechanical stress"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Most common material",
+        "Excellent value",
+        "Requires corrosion protection",
+        "Max temp: 120°C continuous"
+      ]
+    },
+
+    "CUPRO-NICKEL": {
+      "display_name": "Cupronickel",
+      "code": "CuNi30Mn / CW354H",
+      "description": "Copper-nickel-manganese alloy (30% Ni, 1% Mn). Exceptional marine resistance.",
+      "corrosion_resistance": "Exceptional (seawater, biofouling)",
+      "surface_treatments": [
+        "None required"
+      ],
+      "temperature_range": {"min": -100, "max": 300},
+      "applications": [
+        "Marine (desalination, offshore)",
+        "Biofouling resistance",
+        "Seawater heat exchangers",
+        "ATEX zones",
+        "Chemical industry"
+      ],
+      "conductivity": {
+        "electrical": "Low (5% IACS)",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Natural anti-biofouling",
+        "Excellent seawater resistance",
+        "Non-magnetic",
+        "Spark-proof (ATEX)"
+      ]
+    },
+
+    "INCONEL 718": {
+      "display_name": "Inconel 718",
+      "code": "NiCr19NbMo / UNS N07718",
+      "description": "Precipitation hardened nickel-chromium superalloy. Very high strength at temperature.",
+      "corrosion_resistance": "Excellent",
+      "surface_treatments": [
+        "None required"
+      ],
+      "temperature_range": {"min": -200, "max": 650},
+      "applications": [
+        "Aerospace and space",
+        "Gas turbines",
+        "High temperature applications",
+        "Aerospace engines",
+        "Cryogenic applications"
+      ],
+      "conductivity": {
+        "electrical": "Moderate",
+        "thermal": "Moderate"
+      },
+      "notes": [
+        "Highest strength superalloy",
+        "Max temp: 650°C",
+        "Very high cost",
+        "Excellent creep resistance"
+      ]
+    },
+
+    "INOX": {
+      "display_name": "Stainless 302/304",
+      "code": "EN 10270-3 (1.4310)",
+      "description": "Austenitic stainless steel type 302/304. Good general corrosion resistance.",
+      "corrosion_resistance": "Excellent",
+      "surface_treatments": [
+        "Shot peening",
+        "Passivation",
+        "Electropolishing"
+      ],
+      "temperature_range": {"min": -200, "max": 300},
+      "applications": [
+        "Corrosive environments",
+        "Food and medical",
+        "High/low temperature",
+        "Humid or chemical atmosphere"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Low"
+      },
+      "notes": [
+        "Standard stainless steel",
+        "Slightly magnetic after cold work",
+        "Good fatigue resistance"
+      ]
+    },
+
+    "INOX 17-7PH": {
+      "display_name": "Stainless 17-7 PH",
+      "code": "1.4568 / UNS S17700",
+      "description": "Precipitation hardening stainless steel. High strength after heat treatment.",
+      "corrosion_resistance": "Good to very good",
+      "surface_treatments": [
+        "Passivation"
+      ],
+      "temperature_range": {"min": -200, "max": 480},
+      "applications": [
+        "High performance springs",
+        "Aerospace and space",
+        "High temperature springs",
+        "Precision mechanisms"
+      ],
+      "conductivity": {
+        "electrical": "Low",
+        "thermal": "Low"
+      },
+      "notes": [
+        "Very high strength",
+        "Requires heat treatment",
+        "Excellent fatigue life",
+        "Inferior to 316 in chloride environments"
+      ]
+    },
+
+    "LAITON": {
+      "display_name": "Brass",
+      "code": "CuZn37 / CW508L",
+      "description": "Copper-zinc alloy (37% Zn). Economical, good formability.",
+      "corrosion_resistance": "Good (except prolonged salt spray)",
+      "surface_treatments": [
+        "Nickel plating",
+        "Chrome plating"
+      ],
+      "temperature_range": {"min": -100, "max": 100},
+      "applications": [
+        "ATEX zones (spark-proof)",
+        "Low current electrical contacts",
+        "Instrumentation",
+        "Decorative hardware"
+      ],
+      "conductivity": {
+        "electrical": "Good (28% IACS)",
+        "thermal": "Good"
+      },
+      "notes": [
+        "Low cost",
+        "Easy to form",
+        "Limited strength",
+        "Non-magnetic"
+      ]
+    }
+  }
+}

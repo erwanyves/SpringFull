@@ -1,0 +1,53 @@
+{
+    "description": "Template par défaut pour SpringFull - Ressort de compression",
+    "version": "1.4.0",
+    "created": "2026-01",
+    
+    "geometry": {
+        "wireDiameter": 3.0,
+        "meanDiameter": 25.0,
+        "internalDiameter": 22.0,
+        "externalDiameter": 28.0,
+        "activeTurnsQty": 5.0,
+        "deadTurnsQty": 2.0,
+        "totalTurnsQty": 9.0,
+        "diameterType": "Dm (moyen)",
+        "targetDiameter": 25.0
+    },
+    
+    "heights": {
+        "onLoadHight": 50.0,
+        "freeLength": 70.0,
+        "minHeight": 30.0,
+        "solidHeight": 27.0,
+        "activeTurnsHight": 38.0,
+        "deadTurnsHight": 6.0,
+        "minActiveTurnsHight": 15.0,
+        "maxActiveTurnsHight": 58.0,
+        "displayHeight": 50.0,
+        "customHeight": 0.0
+    },
+    
+    "load": {
+        "load": 10.0,
+        "loadType": "SERVICE MOYEN - DYNAMIQUE LENT"
+    },
+    
+    "material": {
+        "material": "CORDE A PIANO"
+    },
+    
+    "ends": {
+        "extremeTurns": "RAPPROCHEES MEULEES",
+        "grinded": true
+    },
+    
+    "winding": {
+        "leftHanded": false
+    },
+    
+    "display": {
+        "configuration": "Ressort sous charge",
+        "simplified": false
+    }
+}
