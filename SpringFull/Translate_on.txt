@@ -1,0 +1,20 @@
+================================================================================
+SPRINGFULL - Language Selection Control File
+================================================================================
+
+This file controls whether the language selection dialog appears at startup.
+
+CURRENT MODE: MANUAL SELECTION (this file is newer)
+- The language dialog will appear at each startup
+- User can choose: English, French, German, Spanish, Italian
+
+TO SWITCH TO AUTOMATIC MODE:
+- Simply "touch" the Translate_off.txt file to update its timestamp
+- Command: touch Translate_off.txt
+- Or: open and save Translate_off.txt
+
+The system compares the modification timestamps of both files:
+- Translate_on.txt newer  → Show language dialog
+- Translate_off.txt newer → Auto-detect system language
+
+================================================================================

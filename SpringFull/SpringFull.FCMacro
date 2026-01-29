@@ -8,7 +8,7 @@ REFONTE COMPLÈTE:
 - Calculateur intégré (bouton "Recalculer")
 - Vérification et création automatique des propriétés manquantes
 
-Version: 1.4.0 - Propriétés en lecture seule regroupées dans "Spring Params"
+Version: 1.4.1 - Sélection de langue contrôlée par fichiers timestamps
 """
 
 __author__ = "Yves Guillou"

@@ -1,0 +1,23 @@
+================================================================================
+SPRINGFULL - Language Auto-Detection Control File
+================================================================================
+
+This file controls automatic language detection at startup.
+
+CURRENT MODE: AUTOMATIC DETECTION (if this file is newer)
+- No language dialog at startup
+- Language detected from FreeCAD settings or system locale
+- Falls back to English if language not recognized
+
+TO SWITCH TO MANUAL MODE:
+- Simply "touch" the Translate_on.txt file to update its timestamp
+- Command: touch Translate_on.txt
+- Or: open and save Translate_on.txt
+
+The system compares the modification timestamps of both files:
+- Translate_on.txt newer  → Show language dialog
+- Translate_off.txt newer → Auto-detect system language
+
+Supported languages: en, fr, de, es, it
+
+================================================================================

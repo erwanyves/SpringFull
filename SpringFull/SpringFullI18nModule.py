@@ -8,7 +8,7 @@ Automatic language detection from FreeCAD or system settings.
 Reference language: English (en.json)
 Translations: French (fr.json), and other languages
 
-Version: 1.1.0
+Version: 1.2.0 - Translation mode controlled by file timestamps
 """
 
 import os
@@ -19,16 +19,65 @@ _current_language = "en"
 _translations = {}
 _fallback_language = "en"  # English is the reference/fallback language
 
-# === SWITCH DE DÉVELOPPEMENT (À SUPPRIMER EN PRODUCTION) ===
-# Mettre à True pour afficher le dialogue de sélection de langue au démarrage
-DEBUG_SHOW_LANGUAGE_DIALOG = True
-# ============================================================
+
+def get_module_path():
+    """Retourne le chemin vers le dossier du module SpringFull."""
+    return os.path.dirname(os.path.abspath(__file__))
 
 
 def get_locales_path():
     """Retourne le chemin vers le dossier locales."""
-    module_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.join(module_dir, "locales")
+    return os.path.join(get_module_path(), "locales")
+
+
+def should_show_language_dialog():
+    """
+    Détermine si le dialogue de sélection de langue doit être affiché.
+    
+    Logique basée sur les timestamps de deux fichiers de contrôle:
+    - Translate_on.txt  : Si plus récent → afficher le dialogue
+    - Translate_off.txt : Si plus récent → utiliser la langue système automatiquement
+    
+    Returns:
+        bool: True si le dialogue doit être affiché, False sinon
+    """
+    module_dir = get_module_path()
+    translate_on_file = os.path.join(module_dir, "Translate_on.txt")
+    translate_off_file = os.path.join(module_dir, "Translate_off.txt")
+    
+    # Vérifier l'existence des fichiers
+    on_exists = os.path.exists(translate_on_file)
+    off_exists = os.path.exists(translate_off_file)
+    
+    # Cas où un seul fichier existe
+    if on_exists and not off_exists:
+        print("[SpringFull I18n] Mode: dialogue (Translate_on.txt seul présent)")
+        return True
+    
+    if off_exists and not on_exists:
+        print("[SpringFull I18n] Mode: automatique (Translate_off.txt seul présent)")
+        return False
+    
+    # Cas où aucun fichier n'existe - par défaut, afficher le dialogue
+    if not on_exists and not off_exists:
+        print("[SpringFull I18n] Mode: dialogue (fichiers de contrôle absents)")
+        return True
+    
+    # Les deux fichiers existent - comparer les timestamps
+    try:
+        on_mtime = os.path.getmtime(translate_on_file)
+        off_mtime = os.path.getmtime(translate_off_file)
+        
+        if on_mtime > off_mtime:
+            print("[SpringFull I18n] Mode: dialogue (Translate_on.txt plus récent)")
+            return True
+        else:
+            print("[SpringFull I18n] Mode: automatique (Translate_off.txt plus récent)")
+            return False
+    except OSError as e:
+        print(f"[SpringFull I18n] Erreur lecture timestamps: {e}")
+        # En cas d'erreur, afficher le dialogue par sécurité
+        return True
 
 
 def detect_language():
@@ -219,15 +268,28 @@ def tr_treatment(treatment_key):
 
 def show_language_dialog():
     """
-    Affiche un dialogue de sélection de langue (pour le développement).
-    Retourne True si une langue a été sélectionnée, False si annulé.
+    Gère la sélection de langue au démarrage.
+    
+    Comportement contrôlé par les timestamps des fichiers:
+    - Translate_on.txt plus récent  → Affiche le dialogue de sélection
+    - Translate_off.txt plus récent → Détection automatique (langue système)
+    
+    En mode automatique:
+    - Détecte la langue de FreeCAD ou du système
+    - Si langue non reconnue → anglais par défaut
     
     Returns:
-        bool: True si langue sélectionnée, False si annulé
+        bool: True si langue sélectionnée/détectée, False si annulé
     """
-    if not DEBUG_SHOW_LANGUAGE_DIALOG:
+    # Vérifier le mode de fonctionnement
+    if not should_show_language_dialog():
+        # Mode automatique - détecter la langue système
+        detected_lang = detect_language()
+        set_language(detected_lang)
+        print(f"[SpringFull I18n] Langue détectée automatiquement: {detected_lang}")
         return True
     
+    # Mode dialogue - afficher la sélection de langue
     # Import Qt
     try:
         from PySide6.QtWidgets import QDialog, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton
@@ -256,10 +318,10 @@ def show_language_dialog():
     title.setStyleSheet("font-weight: bold; font-size: 11pt;")
     layout.addWidget(title)
     
-    # Info
-    info = QLabel("(Development mode - À supprimer en production)")
+    # Info sur le mode de contrôle
+    info = QLabel("(To disable: touch Translate_off.txt)")
     info.setAlignment(Qt.AlignCenter)
-    info.setStyleSheet("color: #888; font-style: italic;")
+    info.setStyleSheet("color: #888; font-style: italic; font-size: 9pt;")
     layout.addWidget(info)
     
     layout.addSpacing(15)
