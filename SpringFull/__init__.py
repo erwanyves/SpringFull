@@ -7,7 +7,7 @@ Macro FreeCAD complète pour:
 - Génération de géométrie 3D détaillée ou simplifiée
 - Stockage des données dans les propriétés du Body
 
-Version: 1.4.0 - Modifications:
+Version: 1.4.2 - Modifications:
 - v1.1: Suppression des propriétés doublées, correction deadTurnsQty et onLoadHight
 - v1.2: Correction duplication LCS lors changement de représentation
 - v1.2.1: Gestion des fichiers multi-ressorts (LCS avec suffixes numériques)
@@ -22,8 +22,13 @@ Version: 1.4.0 - Modifications:
            - configuration, load, loadType, extremeTurns
            - internalDiameter, meanDiameter, externalDiameter
            - onLoadHight, freeLength, material
+- v1.4.1: Sélection de langue contrôlée par fichiers timestamps
+- v1.4.2: Correction du bug "nouveau ressort sans modification"
+         Le ressort est maintenant calculé et représenté même si l'utilisateur
+         ne modifie pas le template par défaut lors de la création.
+         Ajout de la fonction isBodyEmpty() pour détecter les Bodies sans géométrie.
 """
 
-__version__ = "1.4.0"
+__version__ = "1.4.2"
 __author__ = "Yves Guillou"
 __licence__ = "GPL"

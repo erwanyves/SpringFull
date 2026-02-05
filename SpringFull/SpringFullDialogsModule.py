@@ -539,14 +539,14 @@ def springUpdateDialog(data, piece, on_recalculate_callback=None):
     """
     # Déterminer le message selon l'état
     is_new = getattr(data, 'newSpring', False)
-    
+ 
     if is_new:
         msg = tr("update.msg_create")
         button_text = tr("update.btn_create")
     else:
         msg = tr("update.msg_update")
         button_text = tr("update.btn_ok")
-    
+ 
     dialog = QtGui.QDialog()
     dialog.setWindowTitle(tr("update.window_title"))
     dialog.setMinimumWidth(500)

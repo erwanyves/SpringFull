@@ -8,11 +8,15 @@ REFONTE COMPLÈTE:
 - Calculateur intégré (bouton "Recalculer")
 - Vérification et création automatique des propriétés manquantes
 
-Version: 1.4.1 - Sélection de langue contrôlée par fichiers timestamps
+Version: 1.4.2 - Corrections:
+- Correction du bug "nouveau ressort sans modification": le ressort est maintenant
+  calculé et représenté même si l'utilisateur ne modifie pas le template par défaut
+- Ajout de la fonction isBodyEmpty() pour détecter les Bodies sans géométrie
 """
 
 __author__ = "Yves Guillou"
 __licence__ = "GPL"
+__version__ = "1.4.2"
 
 import os
 import sys
@@ -140,6 +144,52 @@ def robust_save(doc, max_retries=3, retry_delay=0.5):
 # =============================================================================
 # FONCTIONS UTILITAIRES
 # =============================================================================
+
+def isBodyEmpty(piece):
+    """
+    Vérifie si le Body ne contient pas de géométrie (seulement son Origin).
+    
+    Un Body est considéré comme "vide" s'il ne contient que des objets
+    de type Origin ou CoordinateSystem (LCS), sans aucune feature géométrique
+    comme des hélices, des pads, des sketches, etc.
+    
+    Args:
+        piece: Body FreeCAD à vérifier
+        
+    Returns:
+        bool: True si le Body est vide (sans géométrie), False sinon
+    """
+    if not piece:
+        return True
+    
+    # Types d'objets qui ne constituent pas de la géométrie
+    non_geometry_types = [
+        'App::Origin',
+        'App::Line',           # Axes de l'Origin
+        'App::Plane',          # Plans de l'Origin
+        'PartDesign::CoordinateSystem',  # LCS
+    ]
+    
+    for obj in piece.Group:
+        type_id = obj.TypeId
+        
+        # Ignorer les objets de type Origin et leurs composants
+        if type_id in non_geometry_types:
+            continue
+        
+        # Ignorer aussi les objets dont le nom suggère qu'ils font partie de l'Origin
+        if 'Origin' in obj.Name or 'Axis' in obj.Name or 'Plane' in obj.Name:
+            if type_id.startswith('App::'):
+                continue
+        
+        # Si on trouve un autre type d'objet, le Body n'est pas vide
+        App.Console.PrintMessage(f"[SpringFull] Body contient: {obj.Name} ({type_id})\n")
+        return False
+    
+    # Aucune géométrie trouvée
+    App.Console.PrintMessage(f"[SpringFull] Body {piece.Label} est vide (sans géométrie)\n")
+    return True
+
 
 def getDataSnapshot(data):
     """
@@ -481,7 +531,7 @@ def main():
     """Point d'entrée principal de la macro."""
     
     App.Console.PrintMessage("\n" + tr("console.separator") + "\n")
-    App.Console.PrintMessage(f"[SpringFull] {tr('console.starting')}\n")
+    App.Console.PrintMessage(f"[SpringFull] {tr('console.starting')} (v{__version__})\n")
     App.Console.PrintMessage(tr("console.separator") + "\n")
     
     # Dialogue de sélection de langue (mode développement)
@@ -564,6 +614,10 @@ def main():
     # Snapshot initial des paramètres (pour détecter les modifications)
     initial_snapshot = getDataSnapshot(data)
     
+    # CORRECTION v1.4.2: Vérifier si le Body est vide (sans géométrie)
+    # Dans ce cas, il faut forcer la construction même sans changement de paramètres
+    body_is_empty = isBodyEmpty(piece)
+    
     # Afficher le dialogue d'actualisation
     def on_recalculate():
         """Callback après recalcul"""
@@ -594,9 +648,13 @@ def main():
         # Vérifier aussi si le calculateur a modifié des paramètres
         calc_changed = hasDataChanged(initial_snapshot, getDataSnapshot(data))
         
-        if not height_changed and not simplified_changed and not calc_changed:
+        # CORRECTION v1.4.2: Forcer la reconstruction si le Body est vide
+        if not height_changed and not simplified_changed and not calc_changed and not body_is_empty:
             App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
             return
+        
+        if body_is_empty:
+            App.Console.PrintMessage(f"[SpringFull] Body vide détecté - construction initiale requise\n")
         
         # Mettre à jour les données d'affichage
         data.displayHeight = displayHeight
@@ -655,9 +713,14 @@ def main():
             # Vérifier aussi si le calculateur a modifié des paramètres
             calc_changed = hasDataChanged(initial_snapshot, getDataSnapshot(data))
             
-            if not height_changed and not simplified_changed and not calc_changed:
+            # CORRECTION v1.4.2: Forcer la reconstruction si le Body est vide
+            # Cela résout le bug où un nouveau ressort sans modification n'était pas construit
+            if not height_changed and not simplified_changed and not calc_changed and not body_is_empty:
                 App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
                 break  # Sortir proprement sans reconstruire
+            
+            if body_is_empty:
+                App.Console.PrintMessage(f"[SpringFull] Body vide détecté - construction initiale requise\n")
             
             # Mettre à jour les données d'affichage
             data.displayHeight = displayHeight
