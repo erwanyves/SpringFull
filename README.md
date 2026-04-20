@@ -55,6 +55,8 @@ SpringFull/
 ```
 
 ## Version History
+### v1.4.3 (2025-04-25)
+- increase flate faces from 180° to 270° for springs with end coils straightened and ground
 
 ### v1.4.2 (2025-02-05)
 - **Bug fix**: New spring without modifications now correctly builds geometry
