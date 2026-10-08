@@ -1,3 +1,4 @@
+# Chemin : SpringFullHelixModule.py
 # -*- coding: utf-8 -*-
 """
 SpringFullHelixModule - Classe Helix définissant les hélices du ressort
@@ -7,7 +8,7 @@ La génération 3D du ressort fonctionne parfaitement et n'a pas été modifiée
 """
 
 __author__ = "Yves Guillou"
-__licence__ = "GPL"
+__licence__ = "LGPL-2.1"
 
 import FreeCAD as App
 import Part
@@ -91,31 +92,46 @@ class Helix():
         # Recalculer pour appliquer l'attachement
         App.ActiveDocument.recompute()
         
-        # CORRECTION v1.3: Positionnement Z du centre du cercle selon type d'extrémité
-        # - COUPEES: Z = d/2 (section tangente au LCS)
-        # - MEULEES: Z = 0 (axe dans plan LCS, coupé par Pocket)
-        # - RAPPROCHEES: Z = nm * d + d/2 (après spires mortes, section tangente)
-        # - RAPPROCHEES_MEULEES: Z = nm * d (après spires mortes, axe coupé par Pocket)
-        
+        # CORRECTION v1.5: Positionnement Z du centre du cercle selon type d'extrémité
+        # IMPORTANT: data.deadTurnsQty est désormais la valeur de FABRICATION
+        # (= valeur mécanique + 0.25 pour les types meulés, afin d'obtenir un appui
+        # meulé à 270° au lieu de 180°).
+        # Pour positionner l'hélice PRINCIPALE (spires actives), on utilise la
+        # valeur MÉCANIQUE = deadTurnsQty - 0.25 pour les types meulés, car la
+        # portion supplémentaire de 0.25 tour se trouve SOUS le plan de coupe
+        # (elle est éliminée par le Pocket de meulage).
+        # - COUPEES:            Z = d/2            (section tangente au LCS)
+        # - MEULEES:            Z = 0              (axe dans plan LCS, coupé par Pocket)
+        # - RAPPROCHEES:        Z = nm * d + d/2   (nm mécanique, section tangente)
+        # - RAPPROCHEES_MEULEES:Z = nm_mech * d    (nm mécanique, axe coupé par Pocket)
+
+        EXTRA_DEAD_TURNS_270 = 0.25  # spires mortes supplémentaires par côté pour appui meulé à 270°
+
         d = data.adjustedWireDiameter
         nm = data.deadTurnsQty if hasattr(data, 'deadTurnsQty') else 0
-        
+
         # Déterminer le type d'extrémité
         end_type = ""
         if hasattr(data, 'extremeTurns'):
             end_type = data.extremeTurns.upper().replace(" ", "_")
-        
-        if end_type == "COUPEES" or (nm < 0.0001 and "MEULEES" not in end_type):
+
+        # Valeur mécanique (sans le supplément de fabrication +0.25 pour les types meulés)
+        if "MEULEES" in end_type:
+            nm_mech = max(0.0, nm - EXTRA_DEAD_TURNS_270)
+        else:
+            nm_mech = nm
+
+        if end_type == "COUPEES" or (nm_mech < 0.0001 and "MEULEES" not in end_type):
             # COUPEES: section tangente en bas, centre à d/2
             circle_center_y = d / 2
-        elif end_type == "MEULEES" or (nm < 0.0001 and "MEULEES" in end_type):
-            # MEULEES: axe dans le plan Z=0
+        elif end_type == "MEULEES" or (nm_mech < 0.0001 and "MEULEES" in end_type):
+            # MEULEES: axe dans le plan Z=0 (la partie +0.25 est sous Z=0, découpée par Pocket)
             circle_center_y = 0
         elif "MEULEES" in end_type:
-            # RAPPROCHEES_MEULEES: Z = nm * d
-            circle_center_y = nm * d
+            # RAPPROCHEES_MEULEES: Z = nm_mech * d (partie +0.25 sous ce plan, découpée par Pocket)
+            circle_center_y = nm_mech * d
         else:
-            # RAPPROCHEES: Z = nm * d + d/2
+            # RAPPROCHEES: Z = nm * d + d/2 (pas de meulage, donc pas de +0.25)
             circle_center_y = nm * d + d / 2
         
         drawing.addGeometry(Part.Circle(

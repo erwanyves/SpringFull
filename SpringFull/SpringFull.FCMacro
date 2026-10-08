@@ -8,15 +8,21 @@ REFONTE COMPLÈTE:
 - Calculateur intégré (bouton "Recalculer")
 - Vérification et création automatique des propriétés manquantes
 
-Version: 1.4.2 - Corrections:
-- Correction du bug "nouveau ressort sans modification": le ressort est maintenant
-  calculé et représenté même si l'utilisateur ne modifie pas le template par défaut
-- Ajout de la fonction isBodyEmpty() pour détecter les Bodies sans géométrie
+Version: 1.5.2 - v1.5.0 : corrections issues de l'audit UX (voir
+SpringFullI18nModule.py, SpringFullDialogsModule.py et SpringFullDataModule.py
+pour le détail) : langue mémorisée dans lang.txt, messages traduits, code de
+représentation indépendant de la langue, accusé de succès non modal,
+protection de la reconstruction géométrique.
+v1.5.1 : diamètres incompatibles affichés en rouge et désactivés dans la
+liste déroulante du calculateur (au lieu d'être retirés).
+v1.5.2 : fenêtre du calculateur redimensionnée automatiquement à son
+contenu réel (au lieu d'une hauteur minimale fixe). Historique complet
+dans __init__.py.
 """
 
 __author__ = "Yves Guillou"
-__licence__ = "GPL"
-__version__ = "1.4.2"
+__licence__ = "LGPL-2.1"
+__version__ = "1.5.2"
 
 import os
 import sys
@@ -63,8 +69,8 @@ from SpringFull.SpringFullDataModule import DataSet, ensureSpringProperties, isS
 from SpringFull.SpringFullModule import Spring
 from SpringFull.SpringFullDialogsModule import (
     configuration, springUpdateDialog, selectSpringDialog,
-    dialogInitialSaveAlert, dialogMissingProperties, showSuccessMessage,
-    showProgressDialog
+    dialogInitialSaveAlert, dialogMissingProperties, showStatusMessage,
+    showProgressDialog, showBuildErrorDialog
 )
 from SpringFull.SpringFullCalculatorModule import SpringCalculatorDialog
 from SpringFull.SpringFullI18nModule import show_language_dialog, tr
@@ -142,6 +148,184 @@ def robust_save(doc, max_retries=3, retry_delay=0.5):
 
 
 # =============================================================================
+# TRANSACTION — FRONTIERE D'ANNULATION
+# =============================================================================
+#
+# QUATRIEME copie de ce motif dans la suite de macros : ORing l'a introduit le
+# 11/09/2026 (modules/dialogue.py, _ouvrir_transaction/_fermer_transaction),
+# Swaging en utilise la forme mono-document (document.openTransaction), et il
+# est ici transpose a SpringFull (20/09/2026, chantier E). Ecrit noir sur blanc
+# pour que la cinquieme copie n'ait pas lieu : ce couple de fonctions a
+# vocation a rejoindre un module commun (mecanismes_partages.md).
+#
+# POURQUOI App.setActiveTransaction() ET NON doc.openTransaction() :
+# `doc.openTransaction()` n'engage qu'UN document. Or, depuis le 13/09/2026,
+# une modification de ressort LIE ecrit dans le document SOURCE tandis que le
+# document actif est l'assemblage : deux documents pour un seul geste. Seul
+# `App.setActiveTransaction()` les relie par un identifiant commun -- une
+# seule entree d'annulation (un seul Ctrl+Z), et un abandon qui defait les deux.
+#
+# L'ouverture est PARESSEUSE : rien n'est engage tant qu'aucun document n'est
+# modifie. Ouvrir au plus tot -- ici, avant meme le dialogue de langue -- est
+# donc sans effet sur les chemins qui n'ecrivent rien.
+#
+# UNE TRANSACTION EST UN FILET : elle ne doit jamais empecher la macro
+# d'aboutir. Si l'ouverture echoue, on le dit et la macro se deroule comme
+# avant ce correctif.
+
+_ETAT_TRANSACTION = {
+    'ouverte':    False,   # une transaction est-elle ouverte ?
+    'corps_cree': None,    # (nom_document, nom_body) cree par CE lancement
+}
+
+
+def _ouvrir_transaction(intitule):
+    """Ouvre la transaction couvrant tous les documents touches par ce lancement.
+
+    Retourne True si elle est ouverte, False sinon -- apres l'avoir dit.
+    """
+    _ETAT_TRANSACTION['ouverte'] = False
+    try:
+        App.setActiveTransaction(intitule)
+        _ETAT_TRANSACTION['ouverte'] = True
+        return True
+    except Exception as erreur:
+        App.Console.PrintWarning(
+            "[SpringFull] %s\n"
+            % tr('console.transaction_unavailable').format(error=erreur))
+        return False
+
+
+def _fermer_transaction(abandon=False):
+    """Valide -- ou abandonne -- la transaction ouverte par _ouvrir_transaction().
+
+    IDEMPOTENTE : le drapeau est baisse AVANT l'appel a FreeCAD. Une fermeture
+    anticipee (validation avant la sauvegarde, abandon avant la boite d'erreur)
+    peut donc etre suivie de la fermeture tenue par main() : la seconde passe
+    dans le vide, sans double abandon.
+    """
+    if not _ETAT_TRANSACTION.get('ouverte'):
+        return
+    _ETAT_TRANSACTION['ouverte'] = False
+    try:
+        App.closeActiveTransaction(abandon)
+    except Exception as erreur:
+        App.Console.PrintWarning(
+            "[SpringFull] %s\n"
+            % tr('console.transaction_close_failed').format(error=erreur))
+
+
+def _nettoyer_creation_abandonnee():
+    """Filet : supprime le Body cree par ce lancement s'il a survecu a l'abandon.
+
+    DECISION DE L'AUTEUR (20/09/2026) : « abandon de creation : on supprime le
+    body spring vide et ses LCS ». Dans le cas nominal, l'abandon de
+    transaction l'a deja defait -- cette fonction ne trouve alors rien et se
+    tait. Elle sert les deux cas ou le Body survit : l'ouverture de la
+    transaction a echoue (pas de filet), ou FreeCAD n'a pas defait la creation.
+
+    Trois gardes, dans cet ordre :
+      - le Body doit etre celui que CE lancement a cree (nom releve a la
+        creation) : jamais un ressort preexistant ;
+      - il doit encore exister, dans SON document -- pas dans le document
+        actif, qui peut etre l'assemblage (13/09/2026) ;
+      - il doit etre VIDE au sens de isBodyEmpty() : un Body qui porte de la
+        geometrie n'est jamais supprime, et le dire.
+
+    La suppression se fait PAR NOM, releve avant : apres un abandon de
+    transaction comme apres un removeObject, le mandataire Python est mort
+    (memorandum, §3). Et elle s'annonce : une reparation automatique se
+    declare (memorandum, classe E).
+    """
+    _trace = _ETAT_TRANSACTION.get('corps_cree')
+    _ETAT_TRANSACTION['corps_cree'] = None
+    if not _trace:
+        return
+    _nom_doc, _nom_corps = _trace
+    try:
+        doc = App.getDocument(_nom_doc)
+    except Exception:
+        doc = None
+    if doc is None:
+        return
+    piece = doc.getObject(_nom_corps)
+    if piece is None:
+        return                      # cas nominal : l'abandon l'a defait
+    try:
+        _vide = isBodyEmpty(piece)
+    except Exception:
+        _vide = False
+    if not _vide:
+        App.Console.PrintWarning(
+            "[SpringFull] %s\n"
+            % tr('console.abandon_kept').format(name=_nom_corps))
+        return
+    noms = []
+    try:
+        noms += [o.Name for o in piece.Group]
+    except Exception:
+        pass
+    try:
+        noms += [f.Name for f in piece.Origin.OriginFeatures]
+    except Exception:
+        pass
+    try:
+        doc.removeObject(_nom_corps)
+    except Exception as erreur:
+        App.Console.PrintWarning(
+            "[SpringFull] %s\n"
+            % tr('console.abandon_failed').format(name=_nom_corps,
+                                                  error=erreur))
+        return
+    for _n in noms:
+        try:
+            if doc.getObject(_n) is not None:
+                doc.removeObject(_n)
+        except Exception as erreur:
+            App.Console.PrintWarning(
+                "[SpringFull] %s\n"
+                % tr('console.abandon_failed').format(name=_n, error=erreur))
+    try:
+        doc.recompute()
+    except Exception:
+        pass
+    App.Console.PrintMessage(
+        "[SpringFull] %s\n"
+        % tr('console.abandon_cleaned').format(name=_nom_corps,
+                                               count=len(noms)))
+
+
+def _documents_a_sauver(piece, doc):
+    """Documents a enregistrer apres une construction reussie, sans doublon.
+
+    CORRECTION (20/09/2026) : `robust_save(doc)` sauvegardait `doc`, releve a
+    l'entree comme `App.ActiveDocument` -- c'est-a-dire l'ASSEMBLAGE en
+    montage lie, alors que la geometrie du ressort vient d'etre ecrite dans
+    `piece.Document`, le document SOURCE. Le document reellement modifie
+    restait non sauvegarde. Meme famille que le defaut corrige le 13/09/2026
+    sur reconstructSpring(), non transpose ici a l'epoque.
+
+    Le document de la piece vient EN PREMIER, l'ancien document est conserve
+    ensuite s'il differe : strictement additif, rien de ce qui etait
+    sauvegarde avant ne cesse de l'etre. En mono-document, les deux sont le
+    meme objet et la liste n'a qu'une entree -- comportement inchange.
+
+    Un document sans `FileName` ne peut pas etre enregistre : il est ecarte
+    (le cas est deja barre en amont par la garde « document non sauvegarde »).
+    """
+    sortie = []
+    for _d in (getattr(piece, 'Document', None), doc):
+        if _d is None:
+            continue
+        if not getattr(_d, 'FileName', ''):
+            continue
+        if any(_d is _deja for _deja in sortie):
+            continue
+        sortie.append(_d)
+    return sortie
+
+
+# =============================================================================
 # FONCTIONS UTILITAIRES
 # =============================================================================
 
@@ -187,7 +371,8 @@ def isBodyEmpty(piece):
         return False
     
     # Aucune géométrie trouvée
-    App.Console.PrintMessage(f"[SpringFull] Body {piece.Label} est vide (sans géométrie)\n")
+    App.Console.PrintMessage(
+        f"[SpringFull] {tr('console.body_empty').format(name=piece.Label)}\n")
     return True
 
 
@@ -256,33 +441,138 @@ def refresh():
         doc.recompute(None, True, True)
 
 
+# Types FreeCAD qui portent un lien vers un objet d'un autre document.
+# Copie locale du `_TYPES_LIENS` d'ORing (ORing/modules/utils.py) : le projet
+# n'importe jamais de code entre macros, chacune devant rester livrable seule.
+_TYPES_LIENS = ('App::Link', 'App::LinkElement', 'App::LinkGroup')
+
+
+def _resolveLinkedObject(obj):
+    """Rend l'objet réel derrière un lien, récursivement. Rend `obj` sinon."""
+    try:
+        if getattr(obj, 'TypeId', '') in _TYPES_LIENS:
+            reel = obj.getLinkedObject(True)
+            if reel is not None:
+                return reel
+    except Exception:
+        pass
+    return obj
+
+
+def _ressortsDansConteneur(obj):
+    """Rend les Bodies ressort portés par `obj` : lui-même, ou son contenu
+    direct s'il s'agit d'un conteneur « équipé ».
+
+    On ne descend PAS plus loin : un lien vise un composant, pas l'arbre
+    entier du document où il vit.
+    """
+    sortie = []
+    if obj is None:
+        return sortie
+    try:
+        if getattr(obj, 'TypeId', '') == 'PartDesign::Body' and isSpringBody(obj):
+            sortie.append(obj)
+            return sortie
+        for e in (getattr(obj, 'Group', None) or []):
+            if getattr(e, 'TypeId', '') == 'PartDesign::Body' and isSpringBody(e):
+                sortie.append(e)
+    except Exception:
+        pass
+    return sortie
+
+
+def _ressortsAtteintsParLiens(doc):
+    """Ressorts que les liens de `doc` amènent réellement dans `doc`.
+
+    NUANCE ESSENTIELLE (14/09/2026, signalée par l'utilisateur) : ce n'est
+    PAS « tous les ressorts des documents liés ». Ma première rédaction
+    balayait chaque document du périmètre de bout en bout et annonçait
+    « 5 ressorts » depuis un assemblage qui n'en instancie qu'UN — les quatre
+    autres vivent dans le fichier source mais ne sont pas dans cet assemblage.
+
+    Proposer à l'utilisateur, depuis son assemblage, de modifier un ressort
+    qui n'y figure pas, c'est lui offrir d'agir sur ce qu'il ne voit pas.
+
+    Un ressort entre donc dans la liste s'il est **atteint par un lien** de
+    ce document — directement, ou à travers le conteneur « équipé » que le
+    lien vise.
+    """
+    sortie = []
+    if doc is None:
+        return sortie
+    for obj in doc.Objects:
+        if getattr(obj, 'TypeId', '') not in _TYPES_LIENS:
+            continue
+        sortie.extend(_ressortsDansConteneur(_resolveLinkedObject(obj)))
+    return sortie
+
+
 def findSpringBodies():
     """
-    Trouve tous les Bodies Spring dans le document actif.
-    
+    Trouve les ressorts VISIBLES depuis le document actif : ceux qu'il
+    contient lui-même, et ceux que ses liens y amènent.
+
+    POURQUOI (14/09/2026, mesure de l'utilisateur) : cette fonction balayait
+    le seul document actif en cherchant des `PartDesign::Body`. Un assemblage
+    multi-fichiers n'en contient **aucun** — chaque composant y est un
+    `App::Link` vers un Body vivant dans son propre fichier. Le journal le
+    disait sans qu'on l'écoute :
+
+        [SpringFull] 0 ressort(s) et 0 lien(s) trouve(s)
+        [SpringFull] Creation nouveau ressort: Spring
+
+    …dans un assemblage qui en montrait un. `selectSpringDialog` rend
+    « créer un nouveau » sans afficher de boîte quand la liste est vide :
+    l'utilisateur qui voulait modifier son ressort obtenait un ressort neuf.
+
+    ET LE PÉRIMÈTRE S'ARRÊTE AUX LIENS, pas aux documents : voir
+    `_ressortsAtteintsParLiens`. Un ressort du fichier source qu'aucun lien
+    n'amène dans cet assemblage n'y figure pas, donc il n'est pas proposé.
+
     Returns:
-        list: Liste des Bodies Spring
+        list: Bodies Spring, dédoublonnés sur le couple (document, Name)
     """
     springs = []
     doc = App.ActiveDocument
     if not doc:
         return springs
-    
+
+    candidats = []
+    # 1. les ressorts du document lui-même (cas mono-document, inchangé)
     for obj in doc.Objects:
-        if obj.TypeId == 'PartDesign::Body':
-            if isSpringBody(obj):
-                springs.append(obj)
-    
+        if obj.TypeId == 'PartDesign::Body' and isSpringBody(obj):
+            candidats.append(obj)
+    # 2. ceux que ses liens y amènent
+    candidats.extend(_ressortsAtteintsParLiens(doc))
+
+    vus = set()
+    for obj in candidats:
+        # Identité = le COUPLE (document, Name). « Spring » est un nom
+        # courant : deux composants liés peuvent tous deux en porter un.
+        try:
+            cle = (obj.Document.Name, obj.Name)
+        except Exception:
+            continue
+        if cle in vus:
+            continue
+        vus.add(cle)
+        springs.append(obj)
+
     return springs
 
 
 def findSpringLinks(springs):
     """
-    Trouve tous les liens (App::Link) pointant vers des ressorts.
-    
+    Trouve tous les liens du document actif pointant vers un de `springs`.
+
+    La résolution est RÉCURSIVE (`getLinkedObject(True)`) : un lien peut viser
+    un `App::Part` « équipé » qui contient le Body, ou un autre lien. Sans
+    cela, seul le cas le plus simple était reconnu — et c'est aussi pourquoi
+    le décompte annonçait « 0 lien(s) ».
+
     Args:
-        springs: Liste des Bodies Spring
-        
+        springs: Liste des Bodies Spring (voir findSpringBodies)
+
     Returns:
         dict: {body: [link1, link2, ...]} pour chaque ressort
     """
@@ -290,16 +580,37 @@ def findSpringLinks(springs):
     doc = App.ActiveDocument
     if not doc:
         return links
-    
-    for obj in doc.Objects:
-        if obj.TypeId == 'App::Link':
-            # Vérifier si le lien pointe vers un ressort
-            linked = getattr(obj, 'LinkedObject', None)
-            if linked and linked in springs:
-                links[linked].append(obj)
-    
-    return links
 
+    # Index par couple (document, Name) : `in springs` compare des objets, et
+    # une résolution de lien ne rend pas forcément le même mandataire Python.
+    index = {}
+    for s in springs:
+        try:
+            index[(s.Document.Name, s.Name)] = s
+        except Exception:
+            pass
+
+    for obj in doc.Objects:
+        if getattr(obj, 'TypeId', '') not in _TYPES_LIENS:
+            continue
+        reel = _resolveLinkedObject(obj)
+        cibles = [reel]
+        # Un lien peut viser le conteneur « équipé » plutôt que le Body :
+        # regarder ce qu'il contient, sans descendre plus loin.
+        try:
+            cibles.extend(list(getattr(reel, 'Group', None) or []))
+        except Exception:
+            pass
+        for cible in cibles:
+            try:
+                cle = (cible.Document.Name, cible.Name)
+            except Exception:
+                continue
+            if cle in index:
+                links[index[cle]].append(obj)
+                break
+
+    return links
 
 def cleanOrphanSpringObjects(doc, piece):
     """
@@ -347,25 +658,609 @@ def cleanOrphanSpringObjects(doc, piece):
     return orphans_removed
 
 
-def createNewSpringBody(doc, body_name="Spring"):
+# Types reconnus comme un repère (LCS) sélectionnable directement — voir le
+# bloc de détection dédié dans detectSpringInsertionGeometry() ci-dessous.
+# 'PartDesign::CoordinateSystem' est le TypeId utilisé par les LCS
+# Local_Top/Local_Bottom du ressort lui-même (voir
+# SpringFullModule.py::_find_or_create_lcs) ; 'Part::LocalCoordinateSystem'
+# est celui du LCS "classique" du workbench Part (menu Part > Repère local)
+# — c'est celui qu'un utilisateur insère typiquement lui-même pour
+# positionner un nouveau ressort. Confirmé en 3D et en sélection dans
+# l'arbre (23/08/2026) : un LCS Part::LocalCoordinateSystem non reconnu ici
+# tombe silencieusement dans la détection face/arête ci-dessous (qui échoue
+# faute de rayon), rendant le repère invisible pour detectSpringInsertion-
+# Geometry() — d'où la sélection par défaut du ressort déjà en place dans
+# selectSpringDialog(), faute d'option de positionnement sur repère.
+# 'PartDesign::LocalCoordinateSystem' est conservé par prudence pour
+# d'éventuels documents/versions plus anciens. Même liste que celle
+# dupliquée indépendamment dans StandardPartSelector/geometry.py.
+_LCS_TYPES = (
+    'PartDesign::CoordinateSystem',
+    'PartDesign::LocalCoordinateSystem',
+    'Part::LocalCoordinateSystem',
+)
+
+def _placementMondeDepuisSelection(obj_resolu, sub_name):
+    """
+    Placement MONDE de la géométrie sélectionnée, résolu depuis la racine de
+    l'assemblage — retourne None si la résolution échoue.
+
+    Pourquoi c'est nécessaire : dans un assemblage multi-fichiers, la sélection
+    résout jusqu'à l'objet réel du document source. La remontée `InList` de
+    detectSpringInsertionGeometry() s'arrête donc sur le PartDesign::Body de CE
+    document, dont le getGlobalPlacement() vaut l'identité dans son propre
+    document — le placement du lien dans l'assemblage est perdu (mesuré le
+    06/09/2026 : 52,32 mm d'écart, plus 31,23 deg de rotation jamais appliqués).
+
+    Le chemin de sous-objet NON RÉSOLU rendu par
+    `Gui.Selection.getSelectionEx('', 0)` part, lui, de la racine de
+    l'assemblage :
+
+        Assembly + 'Arbre.Body.GorgeORing_Sym.;#3f;:H10e5,E;:H10e8,E.Edge10'
+
+    `racine.getSubObject(chemin, 4)` renvoie la matrice accumulée le long de ce
+    chemin, donc le placement monde exact, lien compris.
+
+    Note : le motif de l'atelier Assembly (`obj.Parents` + `getPlacementOf`) ne
+    convient PAS ici — il se garde par `len(parents) == 1`, or `Parents` renvoie
+    plusieurs entrées dès qu'un conteneur intermédiaire existe dans le document
+    source (cas d'une pièce « équipée » d'un joint ORing).
+
+    Corrélation entre les deux résolutions : on retient le chemin non résolu qui
+    se termine par le même nom de sous-élément ET qui contient le nom de l'objet
+    résolu. En mono-document, cette correspondance échoue le plus souvent — la
+    fonction retourne alors None et l'appelant garde son comportement
+    historique, ce qui est exactement le repli voulu.
+    """
+    try:
+        sel_brute = Gui.Selection.getSelectionEx('', 0)
+    except Exception:
+        return None
+    if not sel_brute:
+        return None
+
+    nom_obj = getattr(obj_resolu, 'Name', '') or ''
+    for entree in sel_brute:
+        racine = getattr(entree, 'Object', None)
+        if racine is None:
+            continue
+        for chemin in (entree.SubElementNames or []):
+            if not chemin or not chemin.endswith(sub_name):
+                continue
+            if nom_obj and nom_obj not in chemin:
+                continue
+            try:
+                matrice = racine.getSubObject(chemin, 4)
+            except Exception:
+                continue
+            if matrice is None:
+                continue
+            try:
+                return App.Placement(matrice)
+            except Exception:
+                continue
+    return None
+
+
+def detectSpringInsertionGeometry():
+    """
+    Lit la sélection FreeCAD active et détecte soit un repère (LCS)
+    sélectionné directement, soit un arc ou un cercle sélectionné (face
+    cylindrique ou arête circulaire), pour l'utiliser comme repère de
+    référence (centre + axe) lors de l'insertion d'un NOUVEAU ressort.
+
+    Mécanisme dupliqué INDÉPENDAMMENT (sans import croisé entre macros,
+    conformément à la contrainte d'indépendance) de
+    StandardPartSelector.geometry._detect_cylindrical_geometry() — même
+    logique de détection et de résolution du placement monde (App::Link /
+    App::Part), simplifiée pour SpringFull : un ressort est symétrique
+    autour de son axe, donc seuls le centre et l'axe (normale) sont
+    nécessaires — pas de référence radiale pour un "roll", qui n'a pas de
+    sens physique pour une hélice (y compris pour un LCS sélectionné : son
+    orientation autour de son propre axe Z n'a donc pas besoin d'être
+    reprise).
+
+    Retourne un dict {diameter, center, axis, is_arc} (coordonnées MONDE)
+    ou None si rien d'exploitable n'est sélectionné. Pour un LCS sélectionné
+    directement, 'diameter' vaut None et 'is_lcs' vaut True (pas de notion
+    de diamètre — aucun impact sur le choix du ressort, seulement sur son
+    positionnement).
+    """
+    try:
+        sel = Gui.Selection.getSelectionEx()
+        for s in sel:
+            # ── Repère (LCS) sélectionné directement, ou une de ses trois
+            # branches d'axe cliquée en vue 3D ─────────────────────────────
+            # Priorité sur la détection face/arête ci-dessous.
+            #
+            # BUG CORRIGÉ (24/08/2026) : une tentative précédente supposait
+            # qu'une branche d'axe cliquée en vue 3D apparaissait comme un
+            # SOUS-ÉLÉMENT du LCS (`s.SubElementNames`) — hypothèse invalidée
+            # par un test réel : chaque branche du repère (X_Axis.../
+            # Y_Axis.../Z_Axis..., suffixe numérique variable) est en fait un
+            # objet FreeCAD À PART ENTIÈRE, de TypeId 'App::Line', enfant de
+            # l'Origin du LCS — exactement comme les axes X/Y/Z de l'Origin
+            # d'un Body ou d'un Part. `s.Object` est donc cet App::Line
+            # (avec `s.SubElementNames` vide), pas le LCS — le test
+            # `s.Object.TypeId in _LCS_TYPES` échouait alors silencieusement,
+            # et la détection retombait sur la logique face/arête (qui
+            # échoue faute de rayon), d'où un `geo_info` toujours `None`
+            # pour ce cas précis (confirmé par les logs : aucun message de
+            # détection, aucune erreur).
+            _lcs_obj    = None
+            _local_axis = App.Vector(0, 0, 1)
+            if getattr(s.Object, 'TypeId', None) in _LCS_TYPES:
+                # Sélection directe du LCS (arbre), OU une de ses branches
+                # d'axe cliquée en vue 3D quand ce clic ne crée PAS d'objet
+                # séparé (cas ci-dessous). Par défaut : axe Z canonique.
+                #
+                # CORRECTIF PORTÉ (01/09/2026) depuis
+                # StandardPartSelector/geometry.py (correctif du
+                # 31/08-01/09/2026, non porté initialement lors de sa
+                # livraison — voir claude/audit_macros_freecad_2026-09-01.md
+                # §1.1) : pour un LCS 'PartDesign::CoordinateSystem' (type
+                # des repères internes Local_Top/Local_Bottom créés par
+                # SpringFullModule.py::_find_or_create_lcs), cliquer sur une
+                # flèche d'axe en vue 3D NE crée PAS d'objet 'App::Line'
+                # séparé comme le fait 'Part::LocalCoordinateSystem' (voir
+                # branche 'App::Line' ci-dessous, correctif du 24/08/2026,
+                # toujours nécessaire pour ce second type de LCS) — `s.Object`
+                # reste le LCS lui-même, et l'axe cliqué apparaît dans
+                # `s.SubElementNames` sous la forme d'une chaîne 'X'/'Y'/'Z'.
+                # Sans ce test, un clic sur une branche d'un LCS PartDesign
+                # (notamment le Local_Top/Local_Bottom d'un ressort existant)
+                # retombait silencieusement sur l'axe Z par défaut, quelle
+                # que soit la flèche visée.
+                _lcs_obj  = s.Object
+                _sub_list = list(s.SubElementNames or [])
+                _sub      = _sub_list[0] if _sub_list else ''
+                if _sub == 'X':
+                    _local_axis = App.Vector(1, 0, 0)
+                elif _sub == 'Y':
+                    _local_axis = App.Vector(0, 1, 0)
+                elif _sub == 'Z':
+                    _local_axis = App.Vector(0, 0, 1)
+                # _sub vide ou inattendu (sélection directe du repère depuis
+                # l'arbre, ou clic sur sa croix en vue 3D sans viser une
+                # flèche précise) : axe Z brut du repère par défaut (déjà
+                # initialisé ci-dessus).
+            elif getattr(s.Object, 'TypeId', None) == 'App::Line':
+                _axis_name = getattr(s.Object, 'Name', '') or ''
+                _cand_axis = None
+                if 'X_Axis' in _axis_name:
+                    _cand_axis = App.Vector(1, 0, 0)
+                elif 'Y_Axis' in _axis_name:
+                    _cand_axis = App.Vector(0, 1, 0)
+                elif 'Z_Axis' in _axis_name:
+                    _cand_axis = App.Vector(0, 0, 1)
+                if _cand_axis is not None:
+                    # Remonter depuis l'axe (App::Line) vers son LCS parent,
+                    # via l'Origin intermédiaire — même technique de
+                    # remontée par InList qu'ailleurs dans ce fichier
+                    # (getSelectedSpringBody, résolution du Body porteur).
+                    _cur     = s.Object
+                    _visited = set()
+                    for _ in range(6):
+                        _inlist = getattr(_cur, 'InList', [])
+                        if not _inlist:
+                            break
+                        _nxt = _inlist[0]
+                        if _nxt.Name in _visited:
+                            break
+                        _visited.add(_nxt.Name)
+                        if getattr(_nxt, 'TypeId', None) in _LCS_TYPES:
+                            _lcs_obj    = _nxt
+                            _local_axis = _cand_axis
+                            break
+                        _cur = _nxt
+            if _lcs_obj is not None:
+                try:
+                    _gp = _lcs_obj.getGlobalPlacement()
+                except Exception:
+                    _gp = _lcs_obj.Placement
+
+                # CORRECTIF (24/09/2026) — PORTAGE du correctif du 06/09 de la
+                # branche cylindrique, qui n'avait jamais ete applique ici.
+                #
+                # `getGlobalPlacement()` d'un objet vivant dans le document
+                # SOURCE rend son placement DANS CE DOCUMENT : le placement du
+                # lien et celui de l'assemblage sont perdus. La selection, elle,
+                # resout jusqu'a l'objet reel du document source, donc la
+                # remontee ci-dessus n'atteint jamais le lien.
+                #
+                # Mesure du 24/09 sur banc (ESSAI_lcs_insertion_springfull.py) :
+                # assemblage a (10,20,30), lien a (-4.1987,0,0), LCS a l'origine
+                # du source -> la macro rendait (0,0,0) au lieu de
+                # (5.8013,20,30), soit 36,52 mm. Ce chiffre appartient a ce
+                # montage ; ce qu'il etablit, c'est que NI le lien NI
+                # l'assemblage n'etaient pris en compte.
+                #
+                # Meme motif que la branche cylindrique, repli compris :
+                # `_placementMondeDepuisSelection()` rend None quand la
+                # correlation echoue, et on garde alors exactement le
+                # comportement historique.
+                _gp_lien = _placementMondeDepuisSelection(s.Object, _sub)
+                if _gp_lien is not None:
+                    try:
+                        _ecart_lcs = (_gp_lien.Base - _gp.Base).Length
+                    except Exception:
+                        _ecart_lcs = 0.0
+                    if _ecart_lcs > 1e-6:
+                        App.Console.PrintMessage(
+                            "[SpringFull] repere LCS resolu depuis "
+                            "l'assemblage : ecart de %.4f mm avec la remontee "
+                            "InList (composant lie) -- resolution assemblage "
+                            "retenue\n" % _ecart_lcs)
+                    _gp = _gp_lien
+
+                world_center = _gp.Base
+                world_axis   = _gp.Rotation.multVec(_local_axis)
+                if world_axis.Length > 1e-10:
+                    world_axis = world_axis.normalize()
+                return {
+                    'diameter': None,
+                    'center':   world_center,
+                    'axis':     world_axis,
+                    'is_arc':   False,
+                    'is_lcs':   True,
+                }
+            sub_names = s.SubElementNames or []
+            sub_objs  = s.SubObjects or []       # coordonnées MONDE
+            for i, sub_name in enumerate(sub_names):
+                if i < len(sub_objs):
+                    shape = sub_objs[i]
+                else:
+                    shape = s.Object.Shape.getElement(sub_name)
+
+                radius = center = axis = None
+                is_full = False
+                if shape.ShapeType == 'Face':
+                    surf = shape.Surface
+                    if hasattr(surf, 'Radius'):
+                        radius  = surf.Radius
+                        center  = surf.Center
+                        axis    = surf.Axis
+                        is_full = True
+                elif shape.ShapeType == 'Edge':
+                    curve = shape.Curve
+                    if hasattr(curve, 'Radius'):
+                        radius = curve.Radius
+                        center = curve.Center
+                        axis   = curve.Axis
+                        try:
+                            fp, lp  = shape.FirstParameter, shape.LastParameter
+                            is_full = abs(abs(lp - fp) - 2 * 3.141592653589793) < 1e-6
+                        except Exception:
+                            is_full = False
+                if radius is None:
+                    continue
+
+                diameter = round(radius * 2, 2)
+
+                # Remonter au porteur du placement monde (App::Link / PartDesign::Body
+                # / App::Part) — les features PartDesign (Pad, Pocket, Mirrored, etc.)
+                # n'ont pas de placement propre significatif : leur Shape est exprimée
+                # dans le repère LOCAL du Body qui les contient. C'est donc le Body
+                # lui-même (et non un éventuel App::Part plus haut dans l'arbre) qui
+                # porte le placement pertinent le plus proche — sa getGlobalPlacement()
+                # inclut déjà, en plus, celui de tout App::Part englobant, donc la
+                # remontée peut s'arrêter dès qu'un Body est trouvé.
+                #
+                # BUG CORRIGÉ (23/08/2026) : la version précédente ne s'arrêtait que
+                # sur App::Link/App::LinkElement ou App::Part, ignorant silencieusement
+                # tout PartDesign::Body intermédiaire — dont le Placement propre est
+                # pourtant très généralement non nul dans un assemblage multi-corps
+                # (chaque Body y est typiquement positionné indépendamment). Confirmé
+                # par l'utilisateur sur un cas réel : Body porteur de la géométrie
+                # sélectionnée avec Placement Y = 2 mm, jamais appliqué par l'ancienne
+                # version — explique exactement l'écart de 2 mm rapporté.
+                obj            = s.Object
+                visited        = set()
+                cur            = obj
+                part_candidate = None
+                body_candidate = None
+                gp_obj         = obj
+                is_link        = False
+                while cur is not None:
+                    if cur.Name in visited:
+                        break
+                    visited.add(cur.Name)
+                    if cur.TypeId in ('App::Link', 'App::LinkElement'):
+                        gp_obj  = cur
+                        is_link = True
+                        break
+                    if cur.TypeId == 'PartDesign::Body':
+                        body_candidate = cur
+                        break
+                    if cur.TypeId == 'App::Part':
+                        part_candidate = cur
+                    inlist = getattr(cur, 'InList', [])
+                    cur    = inlist[0] if inlist else None
+                if not is_link:
+                    if body_candidate is not None:
+                        gp_obj = body_candidate
+                    elif part_candidate is not None:
+                        gp_obj = part_candidate
+
+                # NB : contrairement à ce qu'un nom comme "SubObjects (coords
+                # MONDE)" pourrait laisser croire, ces coordonnées restent
+                # exprimées dans le repère de l'objet sélectionné — le
+                # placement de `gp_obj` (qu'il s'agisse de l'objet lui-même,
+                # d'un App::Link ou d'un App::Part) doit donc TOUJOURS être
+                # appliqué, que ce dernier ait été trouvé comme ancêtre ou
+                # non. C'est exactement le mécanisme de référence de
+                # StandardPartSelector.geometry._detect_cylindrical_geometry()
+                # (les deux branches _is_link / non-_is_link y sont
+                # d'ailleurs rigoureusement identiques) — une précédente
+                # tentative de rendre cette transformation conditionnelle a
+                # introduit une régression (offset et positionnement erronés)
+                # et a été annulée.
+                try:
+                    gp = gp_obj.getGlobalPlacement()
+                except Exception:
+                    gp = gp_obj.Placement
+
+                # CORRECTIF (06/09/2026) — composant inséré comme App::Link.
+                # La remontée ci-dessus n'atteint jamais le lien : la sélection
+                # résout déjà jusqu'à l'objet réel du document source, et le
+                # getGlobalPlacement() du Body de ce document vaut l'identité
+                # DANS SON PROPRE DOCUMENT. Mesuré sur un cas réel : ressort
+                # posé à l'origine du monde au lieu de (-52.32, 0, 0), plus
+                # 31,23 deg de rotation jamais appliqués.
+                # _placementMondeDepuisSelection() résout le chemin de
+                # sous-objet depuis la racine de l'assemblage ; elle retourne
+                # None si la corrélation échoue, auquel cas on conserve
+                # exactement le comportement historique.
+                gp_lien = _placementMondeDepuisSelection(s.Object, sub_name)
+                if gp_lien is not None:
+                    try:
+                        _ecart = (gp_lien.multVec(center)
+                                  - gp.multVec(center)).Length
+                    except Exception:
+                        _ecart = 0.0
+                    if _ecart > 1e-6:
+                        App.Console.PrintMessage(
+                            "[SpringFull] placement monde resolu depuis "
+                            "l'assemblage : ecart de %.4f mm avec la remontee "
+                            "InList (composant lie) -- resolution assemblage "
+                            "retenue\n" % _ecart)
+                    gp = gp_lien
+
+                world_center = gp.multVec(center)
+                world_axis   = gp.Rotation.multVec(axis)
+
+                # Méthode 3 points en coordonnées monde (arc ou cercle
+                # complet), dupliquée depuis StandardPartSelector.geometry :
+                # gp.multVec() sur des POSITIONS est toujours fiable, même
+                # pour des transformations non purement rotationnelles
+                # (p.ex. PartDesign::Mirrored) où gp.Rotation.multVec() sur
+                # une direction seule peut être erroné. Ne s'applique qu'aux
+                # arêtes circulaires (curve défini) ; une face cylindrique
+                # garde l'axe issu de surf.Axis transformé ci-dessus.
+                if shape.ShapeType == 'Edge':
+                    try:
+                        if is_full:
+                            t1 = fp
+                            t2 = fp + (2 * 3.141592653589793) / 3
+                            t3 = fp + (4 * 3.141592653589793) / 3
+                        else:
+                            t1 = fp
+                            t2 = (fp + lp) / 2.0
+                            t3 = lp
+                        p1w = gp.multVec(App.Vector(curve.value(t1)))
+                        p2w = gp.multVec(App.Vector(curve.value(t2)))
+                        p3w = gp.multVec(App.Vector(curve.value(t3)))
+                        v1  = p2w - p1w
+                        v2  = p3w - p1w
+                        nc  = v1.cross(v2)
+                        if nc.Length > 1e-10:
+                            world_axis = nc.normalize()
+                    except Exception as e3:
+                        App.Console.PrintWarning(
+                            f"[SpringFull] {tr('console.spring_geo_3pts_error').format(error=e3)}\n"
+                        )
+
+                if world_axis.Length > 1e-10:
+                    world_axis = world_axis.normalize()
+                else:
+                    world_axis = App.Vector(0, 0, 1)
+
+                return {
+                    'diameter': diameter,
+                    'center':   world_center,
+                    'axis':     world_axis,
+                    'is_arc':   not is_full,
+                }
+    except Exception as e:
+        App.Console.PrintWarning(
+            f"[SpringFull] {tr('console.spring_geo_detect_error').format(error=e)}\n"
+        )
+    return None
+
+
+def applyPlacementFromGeometry(piece, geo_info, invert=False, offset=None):
+    """
+    Positionne ``piece`` (Body ressort) pour que son axe local Z (axe de
+    l'hélice, sur lequel s'appuient les LCS Local_Top/Local_Bottom — voir
+    Spring._find_or_create_lcs dans SpringFullModule.py) soit aligné avec
+    l'axe (normale) de la géométrie détectée, centré sur son centre.
+
+    Équivalent, pour un ressort, du mécanisme de positionnement par
+    géométrie de StandardPartSelector.insertion._apply_placement (dupliqué
+    indépendamment ici) — simplifié : pas de choix d'axe local ni de roll,
+    toujours l'axe Z (axe canonique de l'hélice) sur la normale détectée.
+
+    Args:
+        invert: si True, le ressort est orienté dans le sens opposé le
+                long de l'axe détecté (utile pour le faire partir de
+                l'autre côté de la géométrie sélectionnée).
+        offset: tuple (dx, dy, dz) optionnel, décalage appliqué APRÈS
+                alignement, dans le repère local de la géométrie détectée
+                (dz = le long de l'axe, le plus utile pour un ressort ;
+                dx/dy = perpendiculaires à l'axe, repère arbitraire mais
+                stable — construit à partir d'une référence monde fixe,
+                faute de référence radiale portée par
+                detectSpringInsertionGeometry, qui n'en a volontairement
+                pas besoin pour un objet symétrique de révolution).
+    """
+    if piece is None or geo_info is None:
+        return
+    try:
+        import math
+        center = geo_info['center']
+        normal = geo_info['axis']
+        if invert:
+            normal = App.Vector(-normal.x, -normal.y, -normal.z)
+        src = App.Vector(0, 0, 1)   # axe Z local = axe de l'hélice
+
+        dot       = max(-1.0, min(1.0, src.dot(normal)))
+        angle     = math.degrees(math.acos(dot))
+        cross     = src.cross(normal)
+        cross_len = cross.Length
+        if cross_len < 1e-10:
+            rot = App.Rotation() if dot > 0 else App.Rotation(App.Vector(1, 0, 0), 180)
+        else:
+            rot = App.Rotation(
+                App.Vector(cross.x / cross_len, cross.y / cross_len, cross.z / cross_len),
+                angle)
+
+        if offset is not None and (abs(offset[0]) > 1e-9 or abs(offset[1]) > 1e-9 or abs(offset[2]) > 1e-9):
+            nz = normal
+            ref = App.Vector(1, 0, 0) if abs(nz.dot(App.Vector(1, 0, 0))) < 0.9 else App.Vector(0, 1, 0)
+            nx = nz.cross(ref)
+            nx = nx.normalize() if nx.Length > 1e-10 else App.Vector(1, 0, 0)
+            ny = nz.cross(nx)
+            ny = ny.normalize() if ny.Length > 1e-10 else App.Vector(0, 1, 0)
+            center = center + nx * offset[0] + ny * offset[1] + nz * offset[2]
+
+        piece.Placement = App.Placement(center, rot)
+        if geo_info.get('is_lcs'):
+            App.Console.PrintMessage(
+                f"[SpringFull] {tr('console.spring_geo_placement_lcs')}\n"
+            )
+        else:
+            App.Console.PrintMessage(
+                f"[SpringFull] {tr('console.spring_geo_placement').format(diam=geo_info.get('diameter', '?'))}\n"
+            )
+    except Exception as e:
+        App.Console.PrintWarning(
+            f"[SpringFull] {tr('console.spring_geo_placement_error').format(error=e)}\n"
+        )
+
+
+def _show_spring_geo_dialog(piece, geo_info):
+    """
+    Mini dialogue d'ajustement affiché après la création d'un nouveau
+    ressort positionné sur une géométrie sélectionnée (arc/cercle).
+
+    Équivalent, pour SpringFull, du dialogue d'orientation post-insertion
+    de StandardPartSelector (insertion._show_orientation_dialog, dupliqué
+    indépendamment ici — sans import croisé entre macros) : simplifié,
+    puisqu'un ressort n'a qu'un seul axe canonique (Z, l'axe de l'hélice —
+    pas de choix d'axe local à proposer), à l'inversion de direction et au
+    décalage XYZ, avec aperçu en temps réel (chaque changement de contrôle
+    réapplique immédiatement le Placement sur ``piece``).
+    """
+    if piece is None or geo_info is None:
+        return
+    try:
+        dlg = QtGui.QDialog(Gui.getMainWindow())
+        dlg.setWindowTitle(tr('geo_dialog.title'))
+        dlg.setFixedWidth(300)
+        dlg.setWindowFlags(dlg.windowFlags() | QtCore.Qt.WindowStaysOnTopHint | QtCore.Qt.Tool)
+        layout = QtGui.QVBoxLayout()
+
+        if geo_info.get('is_lcs'):
+            info_text = tr('geo_dialog.info_lcs')
+        else:
+            info_text = tr('geo_dialog.info').format(diam=geo_info.get('diameter', '?'))
+        info = QtGui.QLabel(info_text)
+        info.setWordWrap(True)
+        layout.addWidget(info)
+
+        invert_cb = QtGui.QCheckBox(tr('geo_dialog.invert'))
+        layout.addWidget(invert_cb)
+
+        layout.addWidget(QtGui.QLabel(tr('geo_dialog.offset_label')))
+        offset_layout = QtGui.QGridLayout()
+        offset_spins = {}
+        for col, axis_name in enumerate(('X', 'Y', 'Z')):
+            lbl = QtGui.QLabel(axis_name)
+            lbl.setAlignment(QtCore.Qt.AlignCenter)
+            spn = QtGui.QDoubleSpinBox()
+            spn.setRange(-9999.0, 9999.0)
+            spn.setSingleStep(0.1)
+            spn.setDecimals(2)
+            spn.setValue(0.0)
+            spn.setSuffix(' mm')
+            spn.setFixedWidth(80)
+            offset_layout.addWidget(lbl, 0, col)
+            offset_layout.addWidget(spn, 1, col)
+            offset_spins[axis_name] = spn
+        layout.addLayout(offset_layout)
+
+        ok_btn = QtGui.QPushButton(tr('common.ok'))
+        ok_btn.setDefault(True)
+        layout.addWidget(ok_btn)
+        ok_btn.clicked.connect(dlg.accept)
+
+        dlg.setLayout(layout)
+
+        def _update_preview():
+            invert = invert_cb.isChecked()
+            offset = (offset_spins['X'].value(), offset_spins['Y'].value(), offset_spins['Z'].value())
+            applyPlacementFromGeometry(piece, geo_info, invert=invert, offset=offset)
+            try:
+                doc = piece.Document
+                if doc:
+                    doc.recompute(None, True, True)
+                QtGui.QApplication.processEvents()
+            except Exception:
+                pass
+
+        invert_cb.stateChanged.connect(lambda *_: _update_preview())
+        for spn in offset_spins.values():
+            spn.valueChanged.connect(lambda *_: _update_preview())
+
+        dlg.exec()
+    except Exception as e:
+        App.Console.PrintWarning(
+            f"[SpringFull] {tr('console.spring_geo_placement_error').format(error=e)}\n"
+        )
+
+
+def createNewSpringBody(doc, body_name="Spring", geo_info=None):
     """
     Crée un nouveau Body Spring avec toutes les propriétés initialisées.
-    
+
     Args:
         doc: Document FreeCAD
         body_name: Nom du Body
-        
+        geo_info: dict {diameter, center, axis, is_arc} optionnel, issu de
+                  detectSpringInsertionGeometry() — si fourni, le Body est
+                  positionné (Placement) pour que son axe Z local (axe de
+                  l'hélice) soit aligné sur la géométrie détectée (arc ou
+                  cercle sélectionné au lancement de la macro), centré sur
+                  son centre. Sans geo_info : Placement identité (origine),
+                  comportement inchangé.
+
     Returns:
         Body: Le nouveau Body créé
     """
     # Créer le Body
     piece = doc.addObject('PartDesign::Body', body_name)
-    
+
     # Initialiser les propriétés avec valeurs par défaut
     App.Console.PrintMessage(f"[SpringFull] {tr('console.new_spring').format(name=body_name)}\n")
     missing = ensureSpringProperties(piece)
     App.Console.PrintMessage(f"[SpringFull] {tr('console.props_initialized').format(count=missing)}\n")
-    
+
+    # Positionner sur la géométrie sélectionnée au lancement, le cas échéant
+    # (repère de référence pour l'insertion — voir detectSpringInsertionGeometry
+    # et applyPlacementFromGeometry ci-dessus).
+    if geo_info is not None:
+        applyPlacementFromGeometry(piece, geo_info)
+
     return piece
 
 
@@ -377,7 +1272,19 @@ def reconstructSpring(piece, data):
         piece: Body FreeCAD
         data: DataSet avec les données
     """
-    doc = App.ActiveDocument
+    # LE DOCUMENT DE LA PIÈCE, PAS LE DOCUMENT ACTIF (13/09/2026, constat de
+    # l'utilisateur). En assemblage lié, `piece` vit dans le document SOURCE
+    # tandis que le document actif est l'ASSEMBLAGE. Avec `App.ActiveDocument`,
+    # `piece.removeObject(obj)` détachait bien la feature du Body — dans le
+    # document source — puis `doc.removeObject(obj.Name)` la cherchait dans
+    # l'assemblage, où elle n'a jamais existé : exception, avalée par un
+    # `except: pass`, et la feature restait à la racine du document source.
+    # Une génération d'orphelins par modification.
+    #
+    # En mono-document, `piece.Document` EST le document actif : cette ligne
+    # ne change rien au comportement d'un fichier autonome.
+    # (mecanismes_partages.md §9 point 3.)
+    doc = piece.Document
     
     # Sauvegarder le Label
     saved_label = piece.Label
@@ -401,16 +1308,57 @@ def reconstructSpring(piece, data):
         ]
         
         for obj in objects_to_remove:
+            # Relever le nom AVANT toute suppression : une fois l'objet retiré,
+            # son mandataire Python est mort et `obj.Name` lève ReferenceError.
+            _nom = getattr(obj, 'Name', '?')
             try:
                 piece.removeObject(obj)
-                doc.removeObject(obj.Name)
-            except:
-                pass
+                doc.removeObject(_nom)
+            except Exception as e:
+                # Le `except: pass` d'origine a masqué pendant tout ce temps
+                # l'échec qui produisait les orphelins. Un échec de suppression
+                # se déclare (mémorandum, classe E).
+                App.Console.PrintWarning(
+                    "[SpringFull] Suppression de '%s' dans '%s' impossible : "
+                    "%s\n" % (_nom, doc.Name, e))
         
         # Nettoyer les orphelins
         cleanOrphanSpringObjects(doc, piece)
         doc.recompute()
-        
+
+        # ── ÉPREUVE DE L'ABANDON — inerte par défaut ───────────────────
+        #
+        # Le chemin d'échec de reconstruction n'est emprunté par AUCUN
+        # usage normal, et le provoquer « à la main » demandait de
+        # deviner un jeu de paramètres irréalisable : une devinette, pas
+        # une procédure (20/09/2026, signalé par l'utilisateur).
+        #
+        # Ces lignes ne font rien tant que la variable d'environnement
+        # n'existe pas. Pour l'essai, dans la console Python de FreeCAD :
+        #
+        #     import os; os.environ['SPRINGFULL_ESSAI_ECHEC'] = '1'
+        #     … lancer la macro sur un ressort existant, modifier, valider …
+        #
+        # L'échec est provoqué ICI à dessein : les features du ressort
+        # viennent d'être SUPPRIMÉES et rien n'a encore été reconstruit.
+        # C'est très exactement ce que l'ancien code laissait dans le
+        # document quand la reconstruction tournait court — un Body vidé.
+        # L'abandon de transaction doit donc rendre le ressort ENTIER.
+        #
+        # `pop` et non `get` : le point d'essai se DÉSARME en se
+        # déclenchant. Une variable oubliée ferait échouer toutes les
+        # modifications suivantes de la session sans qu'on sache pourquoi
+        # — un dispositif d'essai qui survit à son essai est un piège
+        # (ORing, 13/09/2026). L'import est local pour ne pas toucher au
+        # bloc d'imports de tête pour un point d'essai.
+        import os as _os_essai
+        if _os_essai.environ.pop('SPRINGFULL_ESSAI_ECHEC', None):
+            raise RuntimeError(
+                "SPRINGFULL_ESSAI_ECHEC — échec provoqué après la "
+                "suppression des features et avant la reconstruction. "
+                "Si vous lisez ceci sans l'avoir demandé, retirez la "
+                "variable d'environnement.")
+
         # Recréer le ressort (le matériau est appliqué dans Spring.__init__)
         data.initParameters(piece)
         spring = Spring(data, piece, progress_dialog=progress_dialog)
@@ -421,8 +1369,13 @@ def reconstructSpring(piece, data):
                 piece.setEditorMode('configuration', 0)  # Déverrouiller
                 piece.configuration = data.configuration
                 piece.setEditorMode('configuration', 1)  # Reverrouiller
-            except:
-                pass
+            except Exception as e:
+                # Un `except:` nu attraperait aussi bien une erreur de
+                # programmation qu'une propriété absente. Ici l'échec n'est pas
+                # bloquant — la configuration reste celle d'avant — mais il se
+                # déclare (mémorandum, classe E).
+                App.Console.PrintWarning(
+                    "[SpringFull] Configuration non mise a jour : %s\n" % e)
         
         # Sauvegarder les données dans le Body (gère les propriétés en lecture seule)
         data.saveToBody()
@@ -485,7 +1438,26 @@ def getSelectedSpringBody():
         if obj.TypeId == 'PartDesign::Body' and isSpringBody(obj):
             App.Console.PrintMessage(f"[SpringFull] {tr('console.spring_selected').format(name=obj.Label)}\n")
             return obj
-        
+
+        # BUG CORRIGÉ (23/08/2026) : un LCS sélectionné directement (ex.
+        # Local_Top/Local_Bottom d'un ressort existant — voir
+        # SpringFullModule.py::_find_or_create_lcs) est un `PartDesign::
+        # CoordinateSystem` porté par le Body via `_Body`, donc la
+        # « Méthode 1 » ci-dessous le résolvait vers ce Body et, puisque
+        # isSpringBody() est vrai, `getSelectedSpringBody()` renvoyait ce
+        # ressort existant comme présélectionné — basculant `main()` en
+        # mode édition et empêchant totalement le nouveau mécanisme de
+        # positionnement par LCS (voir detectSpringInsertionGeometry())
+        # de s'exécuter : sélectionner le LCS d'un ressort existant pour
+        # positionner un NOUVEAU ressort sélectionnait l'existant à la
+        # place. Un LCS sert désormais toujours de repère de
+        # positionnement, jamais de raccourci vers l'édition du ressort
+        # qui le porte (qui reste accessible en sélectionnant directement
+        # le ressort ou un autre de ses éléments, comme avant) : la
+        # remontée vers le Body parent est donc sautée pour ce cas.
+        if getattr(obj, 'TypeId', None) in _LCS_TYPES:
+            continue
+
         # Si c'est un élément à l'intérieur d'un Body
         # Chercher le Body parent
         parent = None
@@ -527,8 +1499,111 @@ def getSelectedSpringBody():
 # FONCTION PRINCIPALE
 # =============================================================================
 
-def main():
-    """Point d'entrée principal de la macro."""
+def _completer_documents_partiels_lies():
+    """Charge entierement les documents lies restes partiels. Rend la liste
+    des noms completes.
+
+    POURQUOI (13/09/2026, mesure de l'utilisateur) : quand un assemblage lie
+    un document, FreeCAD peut ne le charger que PARTIELLEMENT. Dans cet etat
+    il n'y enregistre rien et ne le recalcule pas -- il le dit lui-meme :
+
+        Changes to partial loaded document will not be saved: …#Spring003.wireDiameter
+        Please reload partial document '…' for recomputation
+        [SpringFull] Echec reconstruction: MainHelix Shape non disponible
+
+    Le ressort modifie a travers un lien ne pouvait donc pas etre reconstruit.
+    `App.openDocument()` sur le fichier deja ouvert le complete -- meme objet
+    document, rien de perdu (mesure du meme jour sur le poste).
+
+    PERIMETRE VOLONTAIREMENT ETROIT : seuls les documents atteints par un
+    App::Link du document actif. Balayer `App.listDocuments()` ouvrirait des
+    documents sans rapport, que l'utilisateur n'a pas demande de toucher.
+
+    NE LEVE JAMAIS : un echec de completion se declare, il ne fait pas tomber
+    la macro. Elle echouera alors comme avant ce correctif, mais avec un
+    message qui nomme la cause.
+    """
+    _completes = []
+    try:
+        _doc = App.ActiveDocument
+        if _doc is None:
+            return _completes
+
+        # Documents sources atteints par les liens du document actif.
+        _cibles = {}
+        for _obj in _doc.Objects:
+            if getattr(_obj, 'TypeId', '') not in (
+                    'App::Link', 'App::LinkElement', 'App::LinkGroup'):
+                continue
+            try:
+                _reel = _obj.getLinkedObject(True)
+                _d = getattr(_reel, 'Document', None)
+            except Exception:
+                continue
+            if _d is not None and _d.Name != _doc.Name:
+                _cibles[_d.Name] = _d
+
+        for _nom, _d in _cibles.items():
+            if not getattr(_d, 'Partial', False):
+                continue
+            _chemin = getattr(_d, 'FileName', '') or ''
+            if not _chemin:
+                App.Console.PrintWarning(
+                    "[SpringFull] '%s' est charge partiellement et n'a pas de "
+                    "fichier : vos modifications n'y seront pas "
+                    "enregistrees.\n" % _nom)
+                continue
+            try:
+                # `hidden=True` : completer un document lie ne doit pas ouvrir
+                # sa fenetre. L'utilisateur travaille dans son assemblage ; voir
+                # le document source s'ouvrir sous ses yeux n'apporte rien et
+                # lui fait croire qu'il a change de contexte (14/09/2026,
+                # demande de l'utilisateur : « on voit l'ouverture du fichier
+                # lie, serait-il possible de masquer cette partie ? »).
+                #
+                # L'argument n'existe pas sur toutes les versions de FreeCAD :
+                # repli sur la forme historique plutot que d'echouer.
+                try:
+                    App.openDocument(_chemin, True)
+                except TypeError:
+                    App.openDocument(_chemin)
+            except Exception as _e:
+                App.Console.PrintWarning(
+                    "[SpringFull] Completion de '%s' impossible : %s\n"
+                    % (_nom, _e))
+            # C'est l'ETAT relu qui fait foi, pas l'absence d'exception.
+            try:
+                _apres = App.getDocument(_nom)
+            except Exception:
+                _apres = None
+            if _apres is not None and not getattr(_apres, 'Partial', False):
+                _completes.append(_nom)
+                App.Console.PrintMessage(
+                    "[SpringFull] Document '%s' complete : il etait charge "
+                    "partiellement, vos modifications y seront desormais "
+                    "enregistrees.\n" % _nom)
+            else:
+                App.Console.PrintWarning(
+                    "[SpringFull] '%s' reste charge partiellement : FreeCAD "
+                    "n'y enregistrera pas vos modifications et ne pourra pas "
+                    "le recalculer. Ouvrez ce fichier directement "
+                    "(Fichier > Ouvrir), puis relancez la macro.\n" % _nom)
+    except Exception as _e_glob:
+        App.Console.PrintWarning(
+            "[SpringFull] Controle des documents partiels impossible : %s\n"
+            % _e_glob)
+    return _completes
+
+
+def _main_interne():
+    """Corps de la macro. Enveloppé par `main()`, qui tient la frontière.
+
+    Volontairement laissé tel quel : la restitution du document actif se fait
+    dans `main()`, pas ici. Disperser un `finally` dans une fonction de 150
+    lignes à sorties multiples, c'est créer autant d'occasions d'en oublier
+    une (13/09/2026 — même raisonnement que pour la frontière de transaction
+    d'ORing : elle se tient dans l'appelant).
+    """
     
     App.Console.PrintMessage("\n" + tr("console.separator") + "\n")
     App.Console.PrintMessage(f"[SpringFull] {tr('console.starting')} (v{__version__})\n")
@@ -558,7 +1633,23 @@ def main():
     
     # Vérifier si un ressort est déjà sélectionné
     preselected_spring = getSelectedSpringBody()
-    
+
+    # Détecter un repère (LCS) ou un arc/cercle sélectionné : deviendra le
+    # repère de référence (centre + axe) pour positionner un NOUVEAU
+    # ressort — non pertinent si un ressort existant est déjà sélectionné
+    # (préséance à preselected_spring ci-dessus, comportement inchangé dans
+    # ce cas).
+    insertion_geo_info = None if preselected_spring else detectSpringInsertionGeometry()
+    if insertion_geo_info:
+        if insertion_geo_info.get('is_lcs'):
+            App.Console.PrintMessage(
+                f"[SpringFull] {tr('console.spring_geo_selected_lcs')}\n"
+            )
+        else:
+            App.Console.PrintMessage(
+                f"[SpringFull] {tr('console.spring_geo_selected').format(diam=insertion_geo_info['diameter'])}\n"
+            )
+
     # Chercher les ressorts existants
     springs = findSpringBodies()
     links = findSpringLinks(springs)
@@ -569,6 +1660,16 @@ def main():
     piece = None
     is_new = False
     
+    # Géométrie effectivement appliquée au nouveau ressort (le cas échéant)
+    # — le dialogue d'ajustement (_show_spring_geo_dialog) n'est affiché
+    # qu'APRÈS la première construction géométrique réussie du ressort
+    # (voir boucle principale ci-dessous, branche 'ok') : afficher ce
+    # dialogue immédiatement après createNewSpringBody() montrait un Body
+    # encore vide (aucune hélice tant que reconstructSpring() n'a pas
+    # tourné) — l'aperçu temps réel de l'inversion/décalage était donc
+    # invisible pour l'utilisateur (signalé après test réel).
+    applied_geo_info = None
+
     if preselected_spring:
         # Un ressort était sélectionné - l'utiliser directement
         piece = preselected_spring
@@ -582,23 +1683,35 @@ def main():
     elif len(springs) == 0:
         # Aucun ressort - créer nouveau
         is_new = True
-        piece = createNewSpringBody(doc)
+        piece = createNewSpringBody(doc, geo_info=insertion_geo_info)
+        applied_geo_info = insertion_geo_info
+        # Relever le Body cree par CE lancement : c'est lui, et lui seul,
+        # que le filet d'abandon a le droit de supprimer.
+        _ETAT_TRANSACTION['corps_cree'] = (piece.Document.Name, piece.Name)
     else:
-        # Proposer sélection (avec les liens)
-        selected, is_new = selectSpringDialog(springs, links)
-        
+        # Proposer sélection (avec les liens) — si une géométrie a été
+        # détectée, l'option de création positionnée dessus apparaît en
+        # tête de liste (voir selectSpringDialog dans
+        # SpringFullDialogsModule.py) plutôt que d'être reléguée après
+        # tous les ressorts existants.
+        selected, is_new, use_geo = selectSpringDialog(springs, links, geo_info=insertion_geo_info)
+
         if selected is None and is_new is None:
             # Annulé
             App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_by_user')}\n")
             return
-        
+
         if is_new:
             # Créer nouveau avec nom unique
             base_name = "Spring"
             counter = 1
             while doc.getObject(f"{base_name}{counter:03d}"):
                 counter += 1
-            piece = createNewSpringBody(doc, f"{base_name}{counter:03d}")
+            applied_geo_info = insertion_geo_info if use_geo else None
+            piece = createNewSpringBody(doc, f"{base_name}{counter:03d}", geo_info=applied_geo_info)
+            # Voir plus haut : le Body cree par CE lancement.
+            _ETAT_TRANSACTION['corps_cree'] = (piece.Document.Name,
+                                               piece.Name)
         else:
             piece = selected
             # Vérifier/créer les propriétés manquantes
@@ -606,7 +1719,7 @@ def main():
             if missing > 0:
                 App.Console.PrintMessage(f"[SpringFull] {tr('console.props_added').format(count=missing, name=piece.Label)}\n")
                 dialogMissingProperties(missing, piece.Label)
-    
+
     # Créer le DataSet et charger les données
     data = DataSet(piece)
     data.newSpring = is_new
@@ -618,54 +1731,17 @@ def main():
     # Dans ce cas, il faut forcer la construction même sans changement de paramètres
     body_is_empty = isBodyEmpty(piece)
     
-    # Afficher le dialogue d'actualisation
-    def on_recalculate():
-        """Callback après recalcul"""
-        # Lire les valeurs actuelles depuis le Body (pas depuis data)
-        old_displayHeight = 0.0
-        old_simplified = True
-        if hasattr(piece, 'displayHeight'):
-            old_displayHeight = piece.displayHeight
-        elif hasattr(piece, 'onLoadHight'):
-            old_displayHeight = piece.onLoadHight
-        if hasattr(piece, 'simplified'):
-            old_simplified = piece.simplified
-        
-        # Afficher le dialogue de configuration
-        result = configuration(data)
-        
-        if result is None:
-            App.Console.PrintMessage(f"[SpringFull] {tr('console.cancelled_config')}\n")
-            return
-        
-        displayHeight, displayActiveTurnsHight, turnsPitch, config_name = result
-        
-        # Comparer avec les nouvelles valeurs
-        new_simplified = getattr(data, 'simplified', True)
-        height_changed = abs(displayHeight - old_displayHeight) > 0.001
-        simplified_changed = new_simplified != old_simplified
-        
-        # Vérifier aussi si le calculateur a modifié des paramètres
-        calc_changed = hasDataChanged(initial_snapshot, getDataSnapshot(data))
-        
-        # CORRECTION v1.4.2: Forcer la reconstruction si le Body est vide
-        if not height_changed and not simplified_changed and not calc_changed and not body_is_empty:
-            App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
-            return
-        
-        if body_is_empty:
-            App.Console.PrintMessage(f"[SpringFull] Body vide détecté - construction initiale requise\n")
-        
-        # Mettre à jour les données d'affichage
-        data.displayHeight = displayHeight
-        data.activeTurnsHight = displayActiveTurnsHight
-        data.activeTurnsPitch = turnsPitch
-        data.configuration = config_name
-        
-        # Reconstruire le ressort
-        reconstructSpring(piece, data)
-        showSuccessMessage(piece.Label)
-    
+    # NOTE (audit UX finding #9, v1.5): la fonction on_recalculate() qui
+    # se trouvait ici a été retirée - elle dupliquait la logique de la
+    # branche 'ok' de la boucle principale ci-dessous, mais n'était
+    # jamais appelée nulle part (code mort).
+
+    # Verdict rendu a main(), qui tient la frontiere de transaction :
+    # True = la macro a abouti (validation), False = abandon. Toute sortie
+    # qui n'a rien ecrit peut rester a False : abandonner une transaction
+    # vide est sans effet (ouverture paresseuse).
+    _abouti = False
+
     # Boucle principale
     while True:
         action = springUpdateDialog(data, piece)
@@ -717,33 +1793,222 @@ def main():
             # Cela résout le bug où un nouveau ressort sans modification n'était pas construit
             if not height_changed and not simplified_changed and not calc_changed and not body_is_empty:
                 App.Console.PrintMessage(f"[SpringFull] {tr('console.no_modification')}\n")
+                # Sortie VALIDEE, pas abandonnee : rien n'a ete construit,
+                # mais ensureSpringProperties() a pu reparer des proprietes
+                # manquantes sur un ressort ancien. Un abandon les
+                # effacerait en silence.
+                _abouti = True
                 break  # Sortir proprement sans reconstruire
             
             if body_is_empty:
-                App.Console.PrintMessage(f"[SpringFull] Body vide détecté - construction initiale requise\n")
+                App.Console.PrintMessage(
+                    f"[SpringFull] {tr('console.body_empty_detected')}\n")
             
             # Mettre à jour les données d'affichage
             data.displayHeight = displayHeight
             data.activeTurnsHight = displayActiveTurnsHight
             data.activeTurnsPitch = turnsPitch
             data.configuration = config_name
-            
+
             # Reconstruire le ressort
-            reconstructSpring(piece, data)
-            
-            # Sauvegarder le document avec retry
-            robust_save(doc)
-            
-            showSuccessMessage(piece.Label)
+            # CORRECTION v1.5 (audit UX finding #8): la reconstruction
+            # géométrique peut échouer pour des paramètres qui passent les
+            # vérifications du calculateur mais restent géométriquement
+            # irréalisables (ex: "MainHelix Shape non disponible" levée
+            # dans SpringFullModule.py). Sans ce garde-fou, l'utilisateur
+            # voyait la trace Python brute de FreeCAD plutôt qu'un message
+            # clair et traduit.
+            try:
+                reconstructSpring(piece, data)
+            except Exception as e:
+                App.Console.PrintError(f"[SpringFull] Echec reconstruction: {e}\n")
+                # Relever le libelle AVANT l'abandon : si le Body vient
+                # d'etre cree, l'abandon le defait et le mandataire meurt.
+                _label = getattr(piece, 'Label', '?')
+                # ABANDONNER AVANT D'AFFICHER LA BOITE, pas apres : la
+                # boite annonce que le document a ete remis dans son etat
+                # d'avant, et sa boucle d'evenements repeint la vue 3D
+                # pendant qu'elle est ouverte. Il faut que ce soit deja
+                # vrai quand l'utilisateur la lit (motif ORing, 13/09/2026).
+                _restaure = bool(_ETAT_TRANSACTION.get('ouverte'))
+                _fermer_transaction(abandon=True)
+                _nettoyer_creation_abandonnee()
+                # Le message depend de ce qui s'est reellement passe : sans
+                # transaction ouverte, promettre une restauration serait
+                # faux.
+                showBuildErrorDialog(_label, e, restaure=_restaure)
+                break
+
+            # Ajustement du positionnement (inversion/décalage) — affiché
+            # ICI, après cette première construction géométrique réussie,
+            # et non juste après createNewSpringBody() : avant ce point,
+            # le Body était encore vide (aucune hélice tant que
+            # reconstructSpring() n'avait pas tourné), donc l'aperçu 3D
+            # temps réel de l'inversion/décalage ne montrait rien de
+            # visible à l'utilisateur (signalé après test réel). Affiché
+            # une seule fois (applied_geo_info remis à None juste après).
+            if applied_geo_info is not None:
+                _show_spring_geo_dialog(piece, applied_geo_info)
+                applied_geo_info = None
+
+            # VALIDER LA TRANSACTION AVANT DE SAUVEGARDER, pas apres : un
+            # abandon posterieur a l'ecriture sur disque laisserait le
+            # fichier en avance sur le document en memoire. La fermeture
+            # est idempotente : celle de main() passera dans le vide.
+            _fermer_transaction(abandon=False)
+            _abouti = True
+
+            # Sauvegarder LE DOCUMENT DE LA PIECE d'abord -- voir
+            # _documents_a_sauver() : en montage lie, `doc` est
+            # l'assemblage et la geometrie a ete ecrite ailleurs.
+            for _document in _documents_a_sauver(piece, doc):
+                # ANNONCER CE QUI EST ENREGISTRE, et sous quel chemin.
+                # Sans cette ligne, l'utilisateur n'a AUCUN moyen de
+                # voir quel document a ete sauve : le marqueur
+                # « modifie » des onglets ne le dit pas, car refresh()
+                # force un recalcul juste apres et re-salit le document
+                # actif (20/09/2026, constat de l'utilisateur en
+                # assemblage lie). Un correctif inobservable ne peut pas
+                # etre confirme.
+                if robust_save(_document):
+                    App.Console.PrintMessage(
+                        "[SpringFull] %s\n"
+                        % tr('console.saved').format(
+                            name=_document.Name,
+                            file=_document.FileName))
+                else:
+                    App.Console.PrintWarning(
+                        "[SpringFull] %s\n"
+                        % tr('console.save_failed').format(
+                            name=_document.Name))
+
+            status_key = "status.spring_created" if is_new else "status.spring_updated"
+            showStatusMessage(tr(status_key).format(name=piece.Label))
             break
     
     # Rafraîchir
     refresh()
     App.Console.PrintMessage(f"[SpringFull] {tr('console.finished')}\n")
+    return _abouti
+
+
+def main():
+    """Point d'entrée principal de la macro.
+
+    Relève le document actif à l'entrée et le restitue à la sortie.
+
+    MOTIF (13/09/2026, signalé par l'utilisateur) : « si j'insère un lien de
+    ressort, que je modifie ce ressort lié, la modification se propage bien au
+    ressort source ; par contre, en sortie de macro, le document actif n'est
+    pas celui contenant l'assemblage mais le document source ».
+
+    Cause : `SpringFullModule.Spring.helixes()` bascule le document actif sur
+    celui de la pièce -- nécessaire, PartDesign travaillant sur le document
+    actif -- et ne le rétablit jamais :
+
+        if self.piece.Document != App.ActiveDocument:
+            App.setActiveDocument(self.piece.Document.Name)
+
+    En assemblage lié, `self.piece` vit dans le document SOURCE : l'utilisateur
+    se retrouve donc dessus en fin de macro, loin de son assemblage.
+
+    Le rétablissement se fait ICI et non dans `helixes()` : des étapes qui la
+    suivent ont besoin du même document actif, et `main()` est le seul endroit
+    qui voie toutes les sorties -- retours anticipés et exception comprises.
+    C'est la règle déjà retenue pour la frontière de transaction d'ORing
+    (`mecanismes_partages.md` §8.2).
+
+    Trois précautions :
+
+    - **ne rien restituer si rien n'était actif à l'entrée** : la macro crée
+      alors elle-même un document, et c'est lui qu'il faut laisser actif ;
+    - **ne restituer que si le document existe encore** : l'utilisateur peut
+      l'avoir fermé entre-temps ;
+    - **ne rien écrire si le document actif n'a pas changé** -- le cas
+      mono-document, où cette fonction doit être strictement transparente.
+    """
+    try:
+        _nom_avant = getattr(App.ActiveDocument, 'Name', None)
+    except Exception:
+        _nom_avant = None
+
+    # RELEVER LA SELECTION 3D AVANT DE COMPLETER : App.openDocument() la vide,
+    # et `_main_interne()` la lit juste apres (getSelectedSpringBody()). Le
+    # meme piege a coute une regression sur ORing le 13/09/2026 -- le document
+    # actif y etait restitue, la selection non.
+    _sel_avant = []
+    try:
+        _sel_avant = [(_s.DocumentName, _s.ObjectName, tuple(_s.SubElementNames))
+                      for _s in Gui.Selection.getSelectionEx('', 0)]
+    except Exception:
+        _sel_avant = []
+
+    _completer_documents_partiels_lies()
+
+    # Completer a pu changer le document actif : le remettre AVANT de lancer
+    # le corps, sans attendre le `finally`.
+    try:
+        if _nom_avant and getattr(App.ActiveDocument, 'Name', None) != _nom_avant:
+            App.setActiveDocument(_nom_avant)
+            try:
+                Gui.ActiveDocument = Gui.getDocument(_nom_avant)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    # Restituer la selection seulement si elle a ete perdue.
+    if _sel_avant:
+        try:
+            if not Gui.Selection.getSelection():
+                Gui.Selection.clearSelection()
+                for _d, _o, _subs in _sel_avant:
+                    if _subs:
+                        for _sub in _subs:
+                            Gui.Selection.addSelection(_d, _o, _sub)
+                    else:
+                        Gui.Selection.addSelection(_d, _o)
+        except Exception:
+            pass
+
+    # FRONTIERE DE TRANSACTION (20/09/2026, chantier E). Tenue ICI, comme la
+    # restitution du document actif et pour la meme raison : main() est le
+    # seul endroit qui voie TOUTES les sorties de _main_interne() -- retours
+    # anticipes et exception comprises. Une seule ouverture, une seule
+    # fermeture. (Meme regle que la frontiere d'ORing, mecanismes_partages
+    # §8.2.)
+    _ETAT_TRANSACTION['corps_cree'] = None
+    _ouvrir_transaction(tr('transaction.spring'))
+    try:
+        _abouti = _main_interne()
+    except Exception:
+        _fermer_transaction(abandon=True)
+        _nettoyer_creation_abandonnee()
+        raise
+    else:
+        _fermer_transaction(abandon=not bool(_abouti))
+        if not _abouti:
+            _nettoyer_creation_abandonnee()
+        return _abouti
+    finally:
+        try:
+            if _nom_avant and _nom_avant in App.listDocuments():
+                if getattr(App.ActiveDocument, 'Name', None) != _nom_avant:
+                    App.setActiveDocument(_nom_avant)
+                    try:
+                        Gui.ActiveDocument = Gui.getDocument(_nom_avant)
+                    except Exception:
+                        pass
+                    App.Console.PrintMessage(
+                        "[SpringFull] Document actif retabli : %s\n" % _nom_avant)
+        except Exception as _e_doc:
+            App.Console.PrintWarning(
+                "[SpringFull] Retablissement du document actif impossible : "
+                "%s\n" % _e_doc)
 
 
 # =============================================================================
-# POINT D'ENTRÉE
+# POINT D'ENTREE
 # =============================================================================
 
 if __name__ == "__main__":

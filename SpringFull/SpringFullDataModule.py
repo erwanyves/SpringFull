@@ -1,3 +1,4 @@
+# Chemin : SpringFullDataModule.py
 # -*- coding: utf-8 -*-
 """
 SpringFullDataModule - Gestion des données du ressort via propriétés FreeCAD
@@ -10,7 +11,7 @@ Version: 1.4 - Modifications:
 """
 
 __author__ = "Yves Guillou"
-__licence__ = "GPL"
+__licence__ = "LGPL-2.1"
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -25,83 +26,91 @@ from SpringFull.SpringFullI18nModule import tr
 
 # Propriétés VISIBLES pour l'utilisateur (lecture seule, groupe "Spring Params")
 # Ces propriétés sont affichées dans le panneau de propriétés FreeCAD
+#
+# NOTE i18n: "description_key" est résolue via tr() au moment de la création
+# de la propriété (dans ensureAllProperties), PAS au chargement de ce module.
+# FreeCAD fige le texte d'info-bulle à la création de la propriété : pour un
+# Body déjà existant, la description ne sera donc pas retraduite si l'on
+# change de langue plus tard dans la même session (seules les propriétés
+# nouvellement créées reçoivent la description dans la langue active à cet
+# instant). Voir audit UX finding #2.
 VISIBLE_PROPERTIES = {
     # === CONFIGURATION ===
     "configuration": {
         "type": "App::PropertyString",
         "group": "Spring Params",
-        "description": "Mode de représentation actuel",
+        "description_key": "prop.configuration",
         "default": "Ressort sous charge",
         "readonly": True
     },
-    
+
     # === CHARGE ===
     "load": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Charge nominale (daN)",
+        "description_key": "prop.load",
         "default": 30.0,
         "readonly": True
     },
     "loadType": {
         "type": "App::PropertyString",
         "group": "Spring Params",
-        "description": "Type de service",
+        "description_key": "prop.loadType",
         "default": "SERVICE MOYEN - DYNAMIQUE LENT",
         "readonly": True
     },
-    
+
     # === GÉOMÉTRIE ===
     "extremeTurns": {
         "type": "App::PropertyString",
         "group": "Spring Params",
-        "description": "Type d'extrémités",
+        "description_key": "prop.extremeTurns",
         "default": "RAPPROCHEES MEULEES",
         "readonly": True
     },
     "internalDiameter": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Diamètre intérieur Di (mm) = Dm - d",
+        "description_key": "prop.internalDiameter",
         "default": 16.0,
         "readonly": True
     },
     "meanDiameter": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Diamètre moyen Dm (mm)",
+        "description_key": "prop.meanDiameter",
         "default": 20.0,
         "readonly": True
     },
     "externalDiameter": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Diamètre extérieur De (mm) = Dm + d",
+        "description_key": "prop.externalDiameter",
         "default": 24.0,
         "readonly": True
     },
-    
+
     # === HAUTEURS ===
     "onLoadHight": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Hauteur sous charge H (mm)",
+        "description_key": "prop.onLoadHight",
         "default": 88.23,
         "readonly": True
     },
     "freeLength": {
         "type": "App::PropertyFloat",
         "group": "Spring Params",
-        "description": "Longueur libre L0 (mm)",
+        "description_key": "prop.freeLength",
         "default": 100.0,
         "readonly": True
     },
-    
+
     # === MATÉRIAU ===
     "material": {
         "type": "App::PropertyString",
         "group": "Spring Params",
-        "description": "Matériau du ressort",
+        "description_key": "prop.material",
         "default": "CORDE A PIANO",
         "readonly": True
     },
@@ -114,144 +123,209 @@ INTERNAL_PROPERTIES = {
     "wireDiameter": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Diamètre du fil (mm)",
+        "description_key": "prop.wireDiameter",
         "default": 4.0,
         "readonly": True
     },
     "activeTurnsQty": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Nombre de spires actives",
+        "description_key": "prop.activeTurnsQty",
         "default": 9.0,
         "readonly": True
     },
     "deadTurnsQty": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Nombre de spires mortes (par face)",
+        "description_key": "prop.deadTurnsQty",
         "default": 1.0,
         "readonly": True
     },
     "totalTurnsQty": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Nombre total de spires (nt)",
+        "description_key": "prop.totalTurnsQty",
         "default": 13.0,
         "readonly": True
     },
-    
+
     # === HAUTEURS INTERNES ===
     "activeTurnsHight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur spires actives (mm)",
+        "description_key": "prop.activeTurnsHight",
         "default": 64.23,
         "readonly": True
     },
     "deadTurnsHight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur spires mortes (mm)",
+        "description_key": "prop.deadTurnsHight",
         "default": 12.0,
         "readonly": True
     },
     "minActiveTurnsHight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur min spires actives - à bloc (mm)",
+        "description_key": "prop.minActiveTurnsHight",
         "default": 36.0,
         "readonly": True
     },
     "maxActiveTurnsHight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur max spires actives - libre (mm)",
+        "description_key": "prop.maxActiveTurnsHight",
         "default": 64.23,
         "readonly": True
     },
     "minHeight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur à bloc max - Lc max (mm)",
+        "description_key": "prop.minHeight",
         "default": 60.0,
         "readonly": True
     },
     "solidHeight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur à bloc réelle - Lc réel (mm)",
+        "description_key": "prop.solidHeight",
         "default": 55.0,
         "readonly": True
     },
-    
+
     # === AUTRES PARAMÈTRES INTERNES ===
     "grinded": {
         "type": "App::PropertyBool",
         "group": "Internal",
-        "description": "Extrémités meulées",
+        "description_key": "prop.grinded",
         "default": True,
         "readonly": True
     },
     "leftHanded": {
         "type": "App::PropertyBool",
         "group": "Internal",
-        "description": "Enroulement à gauche",
+        "description_key": "prop.leftHanded",
         "default": False,
         "readonly": True
     },
     "simplified": {
         "type": "App::PropertyBool",
         "group": "Internal",
-        "description": "Représentation simplifiée",
+        "description_key": "prop.simplified",
         "default": False,
         "readonly": True
     },
     "customHeight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur personnalisée (mm)",
+        "description_key": "prop.customHeight",
         "default": 0.0,
         "readonly": True
     },
     "customForce": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Charge personnalisée (daN)",
+        "description_key": "prop.customForce",
         "default": 0.0,
         "readonly": True
     },
     "displayHeight": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Hauteur affichée actuelle (mm)",
+        "description_key": "prop.displayHeight",
         "default": 0.0,
         "readonly": True
     },
     "diameterType": {
         "type": "App::PropertyString",
         "group": "Internal",
-        "description": "Type de diamètre (Dm, Di, De)",
+        "description_key": "prop.diameterType",
         "default": "Dm (moyen)",
         "readonly": True
     },
     "targetDiameter": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Diamètre cible entré par l'utilisateur (mm)",
+        "description_key": "prop.targetDiameter",
         "default": 20.0,
         "readonly": True
     },
     "version": {
         "type": "App::PropertyFloat",
         "group": "Internal",
-        "description": "Version du ressort",
+        "description_key": "prop.version",
         "default": 1.4,
+        "readonly": True
+    },
+
+    # === MODE DE CONFIGURATION (code interne, indépendant de la langue) ===
+    # Ajouté en v1.5 (audit UX finding #4) : jusqu'ici, le mode de
+    # représentation choisi (libre / sous charge / bloc / personnalisé)
+    # n'existait que sous forme du texte affiché traduit stocké dans
+    # "configuration", ré-interprété ensuite par correspondance de
+    # sous-chaînes pour savoir quel bouton radio pré-cocher. Ce code fige
+    # le choix réel indépendamment de la langue active ; "configuration"
+    # reste la version lisible affichée à l'utilisateur.
+    # Valeurs possibles : FREE, LOADED, SOLID, CUSTOM_HEIGHT, CUSTOM_FORCE.
+    "configurationMode": {
+        "type": "App::PropertyString",
+        "group": "Internal",
+        "description_key": "prop.configurationMode",
+        "default": "LOADED",
         "readonly": True
     }
 }
 
 # Combinaison de toutes les propriétés
 SPRING_PROPERTIES = {**VISIBLE_PROPERTIES, **INTERNAL_PROPERTIES}
+
+
+def _inferLegacyConfigurationMode(config_str):
+    """
+    Déduit le mode de configuration (code interne indépendant de la langue)
+    à partir de l'ancien texte affiché stocké dans "configuration".
+
+    Utilisée UNE SEULE FOIS, en migration, quand la propriété
+    configurationMode est créée pour un ressort existant qui ne l'a pas
+    encore (voir ensureAllProperties). Ne doit jamais être appelée à
+    chaque ouverture de dialogue : c'est précisément ce pattern
+    (ré-interpréter un texte affiché traduit par correspondance de
+    sous-chaînes) qui posait un risque de sélection silencieusement
+    incorrecte - voir audit UX finding #4.
+
+    Args:
+        config_str: texte affiché précédemment stocké (n'importe quelle
+            langue parmi celles déjà utilisées pour ce ressort)
+
+    Returns:
+        str: "FREE", "LOADED", "SOLID", "CUSTOM_HEIGHT" ou "CUSTOM_FORCE"
+    """
+    if not config_str:
+        return "LOADED"
+
+    s = config_str.lower()
+
+    free_terms = ["libre", "free", "frei", "libera"]
+    if any(t in s for t in free_terms):
+        return "FREE"
+
+    solid_terms = ["bloc", "solid", "block", "bloque", "blocco"]
+    if any(t in s for t in solid_terms):
+        return "SOLID"
+
+    force_terms = ["charge definie", "charge définie", "custom load", "custom force",
+                   "defined load", "benutzerdefinierte last", "carga personalizada",
+                   "carico personalizzato"]
+    if any(t in s for t in force_terms):
+        return "CUSTOM_FORCE"
+
+    height_terms = ["hauteur", "height", "höhe", "hohe", "altura", "altezza",
+                    "personnalis", "custom", "benutzerdefiniert", "personaliza"]
+    if any(t in s for t in height_terms):
+        return "CUSTOM_HEIGHT"
+
+    # "sous charge" / "loaded" / etc. par défaut, comme avant
+    return "LOADED"
 
 
 class DataSet:
@@ -366,28 +440,47 @@ class DataSet:
             return 0
         
         created_count = 0
-        
+
         for prop_name, prop_def in SPRING_PROPERTIES.items():
             if not hasattr(self.body, prop_name):
                 try:
+                    # Description résolue via tr() au moment de la création
+                    # (langue active à cet instant), pas au chargement du
+                    # module - voir la note en tête de VISIBLE_PROPERTIES.
+                    description = tr(prop_def.get('description_key', prop_name))
+
                     # Créer la propriété
                     self.body.addProperty(
                         prop_def['type'],
                         prop_name,
                         prop_def['group'],
-                        prop_def['description']
+                        description
                     )
-                    
+
                     # Affecter la valeur par défaut
                     default_value = self.defaults.get(prop_name, prop_def['default'])
+
+                    # Migration v1.5 (audit UX finding #4) : pour un ressort
+                    # existant qui n'a pas encore la propriété
+                    # configurationMode, déduire une valeur de départ
+                    # cohérente à partir de l'ancien texte affiché
+                    # "configuration" plutôt que de retomber sur la valeur
+                    # par défaut "LOADED" qui pourrait être fausse. Cette
+                    # inférence n'est faite qu'une seule fois, ici, à la
+                    # création de la propriété - jamais rejouée ensuite.
+                    if prop_name == 'configurationMode':
+                        existing_display = getattr(self.body, 'configuration', '') if hasattr(self.body, 'configuration') else ''
+                        if existing_display:
+                            default_value = _inferLegacyConfigurationMode(existing_display)
+
                     setattr(self.body, prop_name, default_value)
-                    
+
                     App.Console.PrintMessage(f"{tr('console.prop_created').format(name=prop_name, value=default_value)}\n")
                     created_count += 1
-                    
+
                 except Exception as e:
                     App.Console.PrintWarning(f"[SpringFull] {tr('console.error_prop_create').format(name=prop_name, error=e)}\n")
-            
+
             # Configurer en lecture seule si spécifié
             if prop_def.get('readonly', False):
                 self._setPropertyReadOnly(prop_name)
@@ -586,28 +679,41 @@ class DataSet:
             end_type_upper = self.extremeTurns.upper()
             if 'MEULEES' in end_type_upper or 'MEULÉE' in end_type_upper:
                 is_ground = True
-        
+
+        # v1.5: deadTurnsQty est la valeur de FABRICATION. Pour déterminer si
+        # le ressort a des spires mortes MÉCANIQUES (donc RAPPROCHEES_MEULEES
+        # vs MEULEES pur), on retire les +0.25 supplémentaires pour les types
+        # meulés.
+        EXTRA_DEAD_TURNS_270 = 0.25
+        if is_ground:
+            nm_mech = max(0.0, self.deadTurnsQty - EXTRA_DEAD_TURNS_270)
+        else:
+            nm_mech = self.deadTurnsQty
+
         # Calcul de l'offset Y selon le type d'extrémité
         if is_ground:
-            if self.deadTurnsQty > 0.0001:
-                # RAPPROCHEES MEULEES avec spires mortes
+            if nm_mech > 0.0001:
+                # RAPPROCHEES MEULEES avec spires mortes mécaniques
                 self.offsetY = self.adjustedWireDiameter * self.diameterCoeff / 2
             else:
-                # MEULEES sans spires mortes
+                # MEULEES sans spires mortes mécaniques (seule la rehausse de
+                # fabrication +0.25 est présente)
                 self.offsetY = 0
         else:
             # COUPEES ou autres
             self.minActiveTurnsHight -= self.wireDiameter
             self.maxActiveTurnsHight -= self.wireDiameter
             self.offsetY = 0
-        
+
         # Paramètres dérivés
         self.deadTurnsPitch = self.wireDiameter
-        
+
         # Mise à jour des diamètres calculés
         self.internalDiameter = self.meanDiameter - self.wireDiameter
         self.externalDiameter = self.meanDiameter + self.wireDiameter
-        
+
+        # v1.5: deadTurnsHight = hauteur PHYSIQUE de l'hélice morte (avant meulage)
+        # = nm_manuf * pas. Le meulage retire ensuite 0.25*d à chaque extrémité.
         self.deadTurnsHight = self.deadTurnsQty * self.deadTurnsPitch
         self.activeTurnsPitch = self.activeTurnsHight / self.activeTurnsQty if self.activeTurnsQty > 0 else 0
         

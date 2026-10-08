@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+# Auteur  : Yves Guillou
+# Licence : LGPL-2.1 — voir le fichier LICENSE du dépôt
 """
 Lanceur pour SpringFull - Placez ce fichier dans votre dossier Macro FreeCAD
 puis lancez-le depuis le menu Macro > Macros...
@@ -17,4 +19,8 @@ if springfull_dir not in sys.path:
     sys.path.insert(0, springfull_dir)
 
 # Lancer la macro principale
-exec(open(os.path.join(springfull_dir, 'SpringFull.FCMacro')).read())
+# encoding EXPLICITE (14/09/2026) : sans lui, `open()` prend l'encodage
+# systeme -- cp1252 sous Windows -- et tout litteral accentue de la macro
+# s'affiche en mojibake (« gÃ©omÃ©trie »). Mesure : journal utilisateur.
+exec(open(os.path.join(springfull_dir, 'SpringFull.FCMacro'),
+          encoding='utf-8').read())

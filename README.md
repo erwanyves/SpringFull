@@ -1,89 +1,97 @@
-# SpringFull - FreeCAD Compression Spring Macro
+# SpringFull — compression spring macro for FreeCAD
 
-Version 1.4.3
+[![License: LGPL v2.1](https://img.shields.io/badge/License-LGPL_v2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+[![FreeCAD](https://img.shields.io/badge/FreeCAD-1.0%2B-orange.svg)](https://www.freecad.org)
+[![Version](https://img.shields.io/badge/version-1.5.2-green.svg)](#version-history)
 
-## Description
+Design helical compression springs according to **EN 13906-1**, then generate them as parametric FreeCAD bodies.
 
-SpringFull is a comprehensive FreeCAD macro for designing compression springs according to EN 13906-1 standards. It provides an integrated solution combining spring calculations, 3D geometry generation, and parameter management within FreeCAD.
+**Author:** Yves Guillou · **Version:** 1.5.2 · **License:** LGPL v2.1
+
+![SpringFull](Macro_Spring.png)
+
+---
 
 ## Features
 
-- Spring calculation according to EN 13906-1
-- Detailed 3D helix geometry or simplified tube representation
-- All data stored in FreeCAD Body properties (no external files needed)
-- Built-in material database with stress limits
-- Multiple representation modes: free, loaded, solid height, custom
-- LCS (Local Coordinate System) for assembly constraints
-- Multi-language support (English, French)
+- **Calculation to EN 13906-1:** rate, loads, shear stress against the material's admissible stress, solid height, and a buckling-risk warning from the slenderness ratio (L0/Dm). The wire diameters the material cannot accept are shown in red and disabled.
+- **3D geometry:** a detailed helix with closed and ground end coils, or a simplified tube for heavy assemblies.
+- **Representation states:** free, loaded, solid or custom length. A length can be **taken from an edge** of your model.
+- **Self-contained data:** every parameter is stored in properties of the spring's `PartDesign::Body`. Nothing depends on an external file.
+- **Placement:** select a circular edge, an arc or a local coordinate system before launching, and the spring is created on it. This also works on a part linked into an assembly.
+- **Editing:** select an existing spring, or any of its faces or edges, then launch to edit it, including a spring linked from another file.
+- **One undo step:** a creation or modification is a single Ctrl+Z, calculator changes included. **Cancel** leaves nothing behind.
+- **Assembly connectors:** the spring carries local coordinate systems at both ends.
+- **Five interface languages:** English, French, German, Spanish and Italian.
+
+> **Note:** SpringFull **saves** the documents it modifies when you confirm: the spring's own file first, then the assembly. It is the only macro of this family that does so.
+
+---
+
+## Requirements
+
+- FreeCAD **1.0 or later** (developed and tested on 1.1), with the PartDesign workbench
+- No external dependency
+
+---
 
 ## Installation
 
-1. Copy the `SpringFull` folder to your FreeCAD Macro directory:
-   - Windows: `%APPDATA%\FreeCAD\Macro\`
-   - Linux: `~/.local/share/FreeCAD/Macro/`
-   - macOS: `~/Library/Application Support/FreeCAD/Macro/`
-
-2. Copy `RunSpringFull.FCMacro` to the same Macro directory
-
-3. Run the macro from FreeCAD: Menu > Macro > Macros... > RunSpringFull
-
-## File Structure
+1. Download or clone this repository.
+2. Copy `SpringFull.FCMacro` and the `SpringFull/` folder into your FreeCAD macro directory. To find it, open the menu **Macro → Macros…**: the directory is shown there.
 
 ```
-SpringFull/
-├── SpringFull.FCMacro          # Main macro
-├── __init__.py                 # Package init
-├── SpringFullDataModule.py     # Data management
-├── SpringFullDialogsModule.py  # User dialogs
-├── SpringFullModule.py         # 3D geometry generation
-├── SpringFullHelixModule.py    # Helix creation
-├── SpringFullCalculatorModule.py # Spring calculator
-├── SpringFullI18nModule.py     # Internationalization
-├── Translate_on.txt            # Language control file
-├── Translate_off.txt           # Language control file
-├── locales/
-│   ├── en.json                 # English translations
-│   ├── fr.json                 # French translations
-│   ├── materials_en.json       # Material names (English)
-│   └── materials_fr.json       # Material names (French)
-├── templates/
-│   └── default.json            # Default spring parameters
-└── utils/
-    ├── spring_materials_database.json
-    ├── wire_diameters_database.json
-    └── end_types_database.json
+Macro/
+├── SpringFull.FCMacro    ← entry point, the file you run
+└── SpringFull/
+    ├── SpringFull.FCMacro            ← main macro (started by the entry point)
+    ├── SpringFull*Module.py          ← calculation, geometry, dialogs, i18n
+    ├── locales/                      ← interface and material names, 5 languages
+    ├── templates/default.json        ← default parameters of a new spring
+    └── utils/                        ← materials, wire diameters, end types
 ```
 
-## Version History
-### v1.4.3 (2025-04-25)
-- increase flate faces from 180° to 270° for springs with end coils straightened and ground
+3. Run **Macro → Macros… → SpringFull.FCMacro → Execute**, or add it to a toolbar.
 
-### v1.4.2 (2025-02-05)
-- **Bug fix**: New spring without modifications now correctly builds geometry
-- Added `isBodyEmpty()` function to detect Bodies without geometry
-- Initial spring construction now works even without changing template parameters
-
-### v1.4.1
-- Language selection controlled by file timestamps
-- Automatic language detection from FreeCAD/system settings
-
-### v1.4.0
-- Visible properties grouped in "Spring Params" (read-only)
-- Added calculated properties: internalDiameter (Di), externalDiameter (De)
-- Internal properties hidden in "Internal" group
+---
 
 ## Usage
 
-1. Run the macro in FreeCAD
-2. Select an existing spring or create a new one
-3. Use the Calculator button to modify spring parameters
-4. Choose representation type (free, loaded, solid, custom)
-5. Choose display mode (detailed helix or simplified tube)
-6. Click OK to generate the 3D geometry
+1. Optionally select where the spring goes (circular edge, arc or LCS), or an existing spring to edit.
+2. Run the macro. If several springs exist, choose one or **create a new spring**.
+3. **Calculator:** set the material, wire diameter, coil diameter, number of active coils and lengths. The results update as you type.
+4. Choose the representation (free, loaded, solid, custom) and the display mode (detailed or simplified).
+5. **OK** builds or updates the geometry.
+
+---
+
+## Language
+
+The first time the macro runs, it asks for the language and remembers it in `SpringFull/lang.txt`. To change it later, edit that file and write `en`, `fr`, `de`, `es` or `it`, or write `ask` to show the choice again.
+
+---
+
+## Version history
+
+**1.5.x** (2026)
+- Linked assemblies: creating, editing and saving through `App::Link`. Partially loaded documents are completed before writing.
+- Placement on a circular edge, arc or LCS of a linked part.
+- One undo step per creation or modification. **Cancel** removes the empty body and its coordinate systems.
+- Length taken from an edge.
+- Interface in five languages, language remembered in `lang.txt`.
+- Calculator: incompatible wire diameters shown in red and disabled. The window fits its content.
+
+**1.4.3** (2025-04-25): flat ends of ground springs widened from 180° to 270°.
+
+**1.4.2** (2025-02-05): a new spring builds its geometry even when no template value was changed.
+
+**1.4.0 – 1.4.1:** spring parameters grouped in read-only properties, inner and outer diameters added, automatic language detection.
+
+---
 
 ## License
 
-GPL License
+Licensed under the **GNU Lesser General Public License v2.1**. See [LICENSE](LICENSE).
 
 ## Author
 

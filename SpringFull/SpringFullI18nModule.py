@@ -8,11 +8,53 @@ Automatic language detection from FreeCAD or system settings.
 Reference language: English (en.json)
 Translations: French (fr.json), and other languages
 
-Version: 1.2.0 - Translation mode controlled by file timestamps
+Version: 1.5.0 - Language choice persisted in lang.txt (single small config
+file, inspired by ORing/lang.txt and StandardPartSelector/translate.txt):
+the language dialog is now shown once, on first launch, then remembered
+automatically. Replaces the previous Translate_on.txt/Translate_off.txt
+timestamp mechanism (a developer-only switch that ended up exposed to end
+users, and that reopened the dialog on every single launch unless a
+developer kept "touching" one of the two files).
 """
 
 import os
 import json
+
+
+# ---------------------------------------------------------------------------
+# Traces de mise au point
+# ---------------------------------------------------------------------------
+# Quatre des neuf print() de ce module ne font que raconter le déroulement
+# normal ("Language loaded", "Langue chargée depuis lang.txt", ...). Ils
+# s'affichent à chaque lancement et noient les cinq autres, qui signalent de
+# vrais problèmes : lang.txt illisible ou invalide, catalogue absent, écriture
+# impossible.
+#
+# Porté d'ORing le 13/09/2026, mais PAS sous la même forme, et c'est
+# délibéré. ORing filtre sur des sous-chaînes ("erreur", "AVERT", ...) parce
+# qu'il compte plus de 300 appels et qu'on ne pouvait pas les trier un par un.
+# Ce filtre est une heuristique : le relevé du 13/09/2026 a montré qu'il
+# laissait tomber quinze avertissements réels d'ORing, et qu'appliqué ici il
+# aurait éteint quatre des cinq lignes utiles ci-dessous ("valeur invalide",
+# "Impossible d'ecrire", "Error loading", "File not found").
+#
+# Avec neuf appels, le critère juste est atteignable : c'est l'INTENTION DE
+# L'AUTEUR qui décide, pas une loterie de sous-chaînes. Les lignes de
+# déroulement passent par _trace(), les lignes de diagnostic restent en
+# print(). Rien à deviner.
+#
+# La variable est lue À CHAQUE APPEL, pas à l'import : un module qui reste
+# chargé entre deux lancements figerait sinon la valeur pour toute la session
+# FreeCAD (défaut constaté sur ORing le même jour).
+import os as _os_trace
+
+
+def _trace(*args, **kwargs):
+    """Trace de déroulement — silencieuse sauf si SPRINGFULL_DEBUG=1."""
+    if _os_trace.environ.get('SPRINGFULL_DEBUG', '') not in (
+            '', '0', 'false', 'False'):
+        print(*args, **kwargs)
+
 
 # Global variables for current language
 _current_language = "en"
@@ -30,54 +72,79 @@ def get_locales_path():
     return os.path.join(get_module_path(), "locales")
 
 
-def should_show_language_dialog():
+def get_lang_file_path():
+    """Retourne le chemin vers le fichier de préférence de langue (lang.txt)."""
+    return os.path.join(get_module_path(), "lang.txt")
+
+
+_LANG_FILE_HEADER = (
+    "# SpringFull - language configuration / configuration de langue\n"
+    "#\n"
+    "# Language chosen the first time the macro ran; remembered automatically\n"
+    "# from now on (no dialog on every launch).\n"
+    "# Langue choisie au premier lancement de la macro ; memorisee\n"
+    "# automatiquement (plus de dialogue a chaque lancement).\n"
+    "#\n"
+    "# To change the language: edit the code below directly\n"
+    "# (en, fr, de, es, it), or set it to 'ask' to have the selection\n"
+    "# dialog shown again on the next launch.\n"
+    "# Pour changer de langue : modifiez directement le code ci-dessous\n"
+    "# (en, fr, de, es, it), ou mettez 'ask' pour que le dialogue de\n"
+    "# selection reapparaisse au prochain lancement.\n"
+    "#\n"
+)
+
+
+def read_lang_preference():
     """
-    Détermine si le dialogue de sélection de langue doit être affiché.
-    
-    Logique basée sur les timestamps de deux fichiers de contrôle:
-    - Translate_on.txt  : Si plus récent → afficher le dialogue
-    - Translate_off.txt : Si plus récent → utiliser la langue système automatiquement
-    
+    Lit la préférence de langue stockée dans lang.txt.
+
     Returns:
-        bool: True si le dialogue doit être affiché, False sinon
+        str ou None: le code langue (2 lettres), 'ask', ou None si le
+        fichier est absent, vide, illisible ou contient une valeur
+        invalide (dans ce dernier cas, on se rabat sur la detection
+        automatique plutot que d'echouer silencieusement).
     """
-    module_dir = get_module_path()
-    translate_on_file = os.path.join(module_dir, "Translate_on.txt")
-    translate_off_file = os.path.join(module_dir, "Translate_off.txt")
-    
-    # Vérifier l'existence des fichiers
-    on_exists = os.path.exists(translate_on_file)
-    off_exists = os.path.exists(translate_off_file)
-    
-    # Cas où un seul fichier existe
-    if on_exists and not off_exists:
-        print("[SpringFull I18n] Mode: dialogue (Translate_on.txt seul présent)")
-        return True
-    
-    if off_exists and not on_exists:
-        print("[SpringFull I18n] Mode: automatique (Translate_off.txt seul présent)")
-        return False
-    
-    # Cas où aucun fichier n'existe - par défaut, afficher le dialogue
-    if not on_exists and not off_exists:
-        print("[SpringFull I18n] Mode: dialogue (fichiers de contrôle absents)")
-        return True
-    
-    # Les deux fichiers existent - comparer les timestamps
+    path = get_lang_file_path()
+    if not os.path.isfile(path):
+        return None
     try:
-        on_mtime = os.path.getmtime(translate_on_file)
-        off_mtime = os.path.getmtime(translate_off_file)
-        
-        if on_mtime > off_mtime:
-            print("[SpringFull I18n] Mode: dialogue (Translate_on.txt plus récent)")
-            return True
-        else:
-            print("[SpringFull I18n] Mode: automatique (Translate_off.txt plus récent)")
-            return False
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#"):
+                    continue
+                value = line.lower()
+                if value == "ask":
+                    return "ask"
+                code = value[:2]
+                if code.isalpha() and len(code) == 2:
+                    return code
+                print(f"[SpringFull I18n] lang.txt: valeur invalide '{line}' -> detection automatique")
+                return None
+        return None
     except OSError as e:
-        print(f"[SpringFull I18n] Erreur lecture timestamps: {e}")
-        # En cas d'erreur, afficher le dialogue par sécurité
-        return True
+        print(f"[SpringFull I18n] Erreur lecture lang.txt: {e} -> detection automatique")
+        return None
+
+
+def write_lang_preference(lang):
+    """
+    Enregistre le code langue choisi dans lang.txt, avec un en-tête
+    explicatif (bilingue, puisqu'écrit avant que la langue de
+    l'utilisateur ne soit connue avec certitude).
+
+    Args:
+        lang: code langue à mémoriser (ex: "fr")
+    """
+    path = get_lang_file_path()
+    try:
+        with open(path, "w", encoding="utf-8") as f:
+            f.write(_LANG_FILE_HEADER)
+            f.write(lang + "\n")
+        _trace(f"[SpringFull I18n] Langue enregistree dans lang.txt: {lang}")
+    except OSError as e:
+        print(f"[SpringFull I18n] Impossible d'ecrire lang.txt: {e}")
 
 
 def detect_language():
@@ -150,7 +217,7 @@ def load_translations(language=None):
         try:
             with open(lang_file, 'r', encoding='utf-8') as f:
                 _translations = json.load(f)
-            print(f"[SpringFull I18n] Language loaded: {language}")
+            _trace(f"[SpringFull I18n] Language loaded: {language}")
         except Exception as e:
             print(f"[SpringFull I18n] Error loading {lang_file}: {e}")
             _translations = {}
@@ -269,26 +336,38 @@ def tr_treatment(treatment_key):
 def show_language_dialog():
     """
     Gère la sélection de langue au démarrage.
-    
-    Comportement contrôlé par les timestamps des fichiers:
-    - Translate_on.txt plus récent  → Affiche le dialogue de sélection
-    - Translate_off.txt plus récent → Détection automatique (langue système)
-    
-    En mode automatique:
-    - Détecte la langue de FreeCAD ou du système
-    - Si langue non reconnue → anglais par défaut
-    
+
+    Comportement (fichier SpringFull/lang.txt, voir get_lang_file_path()):
+    - lang.txt absent (premier lancement) → le dialogue de choix de langue
+      s'affiche ; le choix de l'utilisateur est ensuite mémorisé dans
+      lang.txt et n'est plus redemandé aux lancements suivants.
+    - lang.txt contient un code langue valide (en, fr, de, es, it) → ce
+      code est utilisé directement, sans dialogue.
+    - lang.txt contient 'ask' → le dialogue est affiché à chaque
+      lancement (pratique en développement / pour retravailler les
+      traductions).
+    - lang.txt illisible ou code non reconnu → détection automatique
+      (langue de FreeCAD ou du système), sans dialogue.
+
     Returns:
         bool: True si langue sélectionnée/détectée, False si annulé
     """
-    # Vérifier le mode de fonctionnement
-    if not should_show_language_dialog():
-        # Mode automatique - détecter la langue système
-        detected_lang = detect_language()
-        set_language(detected_lang)
-        print(f"[SpringFull I18n] Langue détectée automatiquement: {detected_lang}")
+    stored_lang = read_lang_preference()
+
+    if stored_lang is not None and stored_lang != "ask":
+        # Préférence valide déjà mémorisée -> l'utiliser directement
+        set_language(stored_lang)
+        _trace(f"[SpringFull I18n] Langue chargee depuis lang.txt: {stored_lang}")
         return True
-    
+
+    is_first_run = stored_lang is None
+
+    if not is_first_run:
+        # lang.txt == 'ask': mode developpement, on redetecte la langue
+        # systeme avant d'afficher le dialogue, pour une preselection
+        # coherente dans la liste deroulante.
+        set_language(detect_language())
+
     # Mode dialogue - afficher la sélection de langue
     # Import Qt
     try:
@@ -318,8 +397,16 @@ def show_language_dialog():
     title.setStyleSheet("font-weight: bold; font-size: 11pt;")
     layout.addWidget(title)
     
-    # Info sur le mode de contrôle
-    info = QLabel("(To disable: touch Translate_off.txt)")
+    # Info sur la mémorisation du choix (bilingue: la langue n'est pas
+    # encore connue à ce stade)
+    if is_first_run:
+        info_text = ("Your choice will be remembered automatically. / "
+                     "Ce choix sera mémorisé automatiquement.")
+    else:
+        info_text = ("Dialog mode active (lang.txt = 'ask'). / "
+                     "Mode dialogue actif (lang.txt = 'ask').")
+    info = QLabel(info_text)
+    info.setWordWrap(True)
     info.setAlignment(Qt.AlignCenter)
     info.setStyleSheet("color: #888; font-style: italic; font-size: 9pt;")
     layout.addWidget(info)
@@ -376,9 +463,14 @@ def show_language_dialog():
         selected_lang = combo.currentData()
         if selected_lang != current_lang:
             set_language(selected_lang)
-            print(f"[SpringFull I18n] Langue changée: {selected_lang}")
+            _trace(f"[SpringFull I18n] Langue changée: {selected_lang}")
+        if is_first_run:
+            # Mémoriser le choix : plus jamais redemandé aux lancements
+            # suivants (contrairement à l'ancien mécanisme par
+            # timestamps, qui redemandait à chaque fois par défaut).
+            write_lang_preference(selected_lang)
         return True
-    
+
     return False
 
 

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+*_backup_*
+*.zip
+*.FCBak
+.~lock.*
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Configuration propre à chaque poste
+SpringFull/lang.txt

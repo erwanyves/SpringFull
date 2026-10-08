@@ -1,3 +1,4 @@
+# Chemin : SpringFullCalculatorModule.py
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
@@ -8,7 +9,7 @@ Version: 1.0 - Module intégré sans dépendance externe
 """
 
 __author__ = "Yves Guillou"
-__licence__ = "GPL"
+__licence__ = "LGPL-2.1"
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -23,8 +24,8 @@ try:
         QLabel, QDoubleSpinBox, QSpinBox, QComboBox, QPushButton,
         QScrollArea, QWidget, QMessageBox, QGroupBox
     )
-    from PySide6.QtCore import Qt
-    from PySide6.QtGui import QFontMetrics
+    from PySide6.QtCore import Qt, QTimer
+    from PySide6.QtGui import QFontMetrics, QColor, QBrush
     from PySide6.QtWidgets import QApplication
     # PySide6: constantes dans sous-classes
     QDialogAccepted = QDialog.DialogCode.Accepted
@@ -37,8 +38,8 @@ except ImportError:
         QLabel, QDoubleSpinBox, QSpinBox, QComboBox, QPushButton,
         QScrollArea, QWidget, QMessageBox, QGroupBox
     )
-    from PySide.QtCore import Qt
-    from PySide.QtGui import QFontMetrics
+    from PySide.QtCore import Qt, QTimer
+    from PySide.QtGui import QFontMetrics, QColor, QBrush
     from PySide.QtWidgets import QApplication
     # PySide2: constantes directes
     QDialogAccepted = QDialog.Accepted
@@ -294,6 +295,8 @@ def _get_styles():
     styles['FG_COLOR'] = FG_COLOR
     styles['BG_INPUT'] = BG_INPUT
     styles['BORDER_COLOR'] = BORDER_COLOR
+    styles['ALERT_WARN_BG'] = ALERT_WARN_BG
+    styles['ALERT_WARN_FG'] = ALERT_WARN_FG
     
     return styles
 
@@ -631,6 +634,18 @@ class DatabaseManager:
 
 # Instance globale
 DB = DatabaseManager()
+
+
+# Coefficient de la formule de contrainte de cisaillement d'un ressort
+# helicoidal : tau = 8 * F * Dm / (pi * d**3)  ->  coefficient 8/pi.
+# Constante de formule, volontairement non parametrable
+# (voir claude/spec_parametrage_json_macros.md, categorie D).
+COEF_TAU = 8.0 / math.pi  # 2.546479...
+
+# Diametre de fil propose a l'ouverture du calculateur, quand aucun ressort
+# existant n'est charge (coherent avec le defaut de INTERNAL_PROPERTIES
+# dans SpringFullDataModule).
+DEFAULT_WIRE_DIAMETER = 4.0
 
 
 def get_coef_bergstrasser(c):
@@ -1130,11 +1145,14 @@ class SpringCalculatorDialog(QDialog):
         # Stocker tous les diamètres disponibles pour le filtrage
         self._all_diameters = DB.get_wire_diameters()
         self.inp_d.addItems([f"{d:.2f}" for d in self._all_diameters])
-        self.inp_d.setCurrentText("4.00")
         self.inp_d.setStyleSheet(get_style("COMBO"))
         self.inp_d.setEditable(True)
         self.inp_d.lineEdit().setAlignment(Qt.AlignRight)
         self.inp_d.lineEdit().setReadOnly(True)
+        # Toute selection de ce champ passe par _select_wire_diameter()
+        # (donc par currentIndex), jamais par setCurrentText() : voir la
+        # docstring de cette methode.
+        self._select_wire_diameter(DEFAULT_WIRE_DIAMETER)
         grid.addWidget(self.inp_d, row, 1)
         
         grid.addWidget(self._label(tr("calc.service_type")), row, 2)
@@ -1194,7 +1212,9 @@ class SpringCalculatorDialog(QDialog):
         self.inp_nm.setRange(0, 10)
         self.inp_nm.setSingleStep(0.5)
         self.inp_nm.setValue(3.0)
-        self.inp_nm.setDecimals(1)
+        # v1.5: 2 décimales pour afficher correctement les valeurs de fabrication
+        # des types meulés (0.25, 3.25, etc.)
+        self.inp_nm.setDecimals(2)
         self.inp_nm.setStyleSheet(get_style("INPUT"))
         self.inp_nm.setAlignment(Qt.AlignRight)
         grid.addWidget(self.inp_nm, row, 3)
@@ -1294,23 +1314,77 @@ class SpringCalculatorDialog(QDialog):
         
         scroll.setWidget(content)
         main_layout.addWidget(scroll)
-        
+
+        # Note: la touche Entrée est volontairement désactivée dans ce
+        # dialogue dense en saisie (voir keyPressEvent) - le signaler
+        # explicitement pour éviter l'impression d'un raccourci "cassé".
+        enter_hint = QLabel(tr("calc.enter_disabled_hint"))
+        enter_hint.setWordWrap(True)
+        enter_hint.setAlignment(Qt.AlignCenter)
+        enter_hint.setStyleSheet(f"color: {get_style('SECTION_COLOR')}; font-size: 8pt; font-style: italic;")
+        main_layout.addWidget(enter_hint)
+
         # Boutons
         btn_layout = QHBoxLayout()
-        
+
         btn_ok = QPushButton(tr("calc.apply_close"))
         btn_ok.setMinimumWidth(130)
         btn_ok.clicked.connect(self._apply_and_close)
-        
+
         btn_cancel = QPushButton(tr("common.cancel"))
         btn_cancel.setMinimumWidth(80)
         btn_cancel.clicked.connect(self.reject)
-        
+
         btn_layout.addStretch()
         btn_layout.addWidget(btn_ok)
         btn_layout.addWidget(btn_cancel)
         main_layout.addLayout(btn_layout)
+
+        self._resize_to_content(main_layout, header, scroll, content, enter_hint, btn_layout)
     
+    def _resize_to_content(self, main_layout, header, scroll, content, enter_hint, btn_layout):
+        """
+        Ajuste la hauteur du dialogue à son contenu réel.
+
+        QScrollArea.sizeHint() est plafonné par Qt à une hauteur assez
+        faible (~24 lignes de texte), même avec setWidgetResizable(True) :
+        le layout principal ne "voit" donc jamais la vraie hauteur du
+        formulaire, et la fenêtre restait collée à self.minimumHeight()
+        (650 px) - un peu trop petite pour ce calculateur dense en champs.
+
+        On calcule ici la hauteur voulue explicitement à partir du contenu
+        réel de la zone scrollable, plafonnée à la hauteur disponible de
+        l'écran : le défilement reste donc disponible en secours sur un
+        petit écran, mais la fenêtre s'ouvre directement à sa taille utile
+        sur un écran normal.
+        """
+        content.adjustSize()
+        margins = main_layout.contentsMargins()
+        around_height = (
+            margins.top() + margins.bottom()
+            + header.sizeHint().height() + main_layout.spacing()
+            + enter_hint.sizeHint().height() + main_layout.spacing()
+            + btn_layout.sizeHint().height() + main_layout.spacing()
+            + scroll.frameWidth() * 2
+        )
+        ideal_height = content.sizeHint().height() + around_height
+
+        screen = QApplication.primaryScreen()
+        if screen is not None:
+            # Marge pour laisser de la place à la barre des tâches / au
+            # titre de fenêtre plutôt que de coller pile à la hauteur
+            # disponible de l'écran.
+            max_height = max(self.minimumHeight(), screen.availableGeometry().height() - 80)
+        else:
+            max_height = ideal_height
+
+        target_height = max(min(ideal_height, max_height), self.minimumHeight())
+
+        # adjustSize() calcule une largeur correcte (respecte minimumWidth/
+        # maximumWidth déjà définis) - on ne change que la hauteur.
+        self.adjustSize()
+        self.resize(self.width(), target_height)
+
     def _input(self, value, decimals, mini, maxi):
         spin = QDoubleSpinBox()
         spin.setRange(mini, maxi)
@@ -1409,18 +1483,59 @@ class SpringCalculatorDialog(QDialog):
         end_type_key = self.inp_end_type.currentData()
         if end_type_key is None:
             end_type_key = txt  # Fallback
-        
-        # COUPEES et MEULEES: pas de spires mortes (nm=0)
-        # RAPPROCHEES et RAPPROCHEES_MEULEES: spires mortes requises
-        if end_type_key in ["COUPEES", "MEULEES"]:
-            self.inp_nm.setValue(0)
+
+        # v1.5: UI affiche désormais la valeur de FABRICATION des spires mortes.
+        # Pour les types MEULÉS, on ajoute +0.25 tour par côté afin d'obtenir un
+        # plan d'appui à 270° (au lieu de 180°) après meulage.
+        # - COUPEES:                pas de spires mortes (nm_fab = 0)
+        # - MEULEES:                0 spire mécanique + 0.25 fab = 0.25 (non éditable)
+        # - RAPPROCHEES:            nm_min classique, pas de supplément (pas de meulage)
+        # - RAPPROCHEES_MEULEES:    nm_min + 0.25 (supplément de fabrication)
+        # - NON_RAPPROCHEES:        nm_min classique
+        # - NON_RAPPROCHEES_MEULEES:nm_min + 0.25
+
+        EXTRA_DEAD_TURNS_270 = 0.25  # supplément de fabrication pour appui meulé 270°
+        is_ground = "MEULEES" in end_type_key  # types meulés nécessitant le supplément
+        extra = EXTRA_DEAD_TURNS_270 if is_ground else 0.0
+
+        if end_type_key == "COUPEES":
+            # Coupées sèches : aucune spire morte, aucun meulage
+            self.inp_nm.setMinimum(0.0)
+            self.inp_nm.setSingleStep(0.5)
+            self.inp_nm.setValue(0.0)
             self.inp_nm.setEnabled(False)
+            self.inp_nm.setToolTip(
+                tr("calc.tooltip_nm_cut")
+            )
+        elif end_type_key == "MEULEES":
+            # Meulées seules : mécaniquement 0 spire morte, mais on génère 0.25 tour
+            # supplémentaire par côté pour produire l'appui meulé (270°).
+            self.inp_nm.setMinimum(extra)
+            self.inp_nm.setSingleStep(0.25)
+            self.inp_nm.setValue(extra)
+            self.inp_nm.setEnabled(False)
+            self.inp_nm.setToolTip(
+                tr("calc.tooltip_nm_ground")
+            )
         else:
+            # RAPPROCHEES / RAPPROCHEES_MEULEES / NON_RAPPROCHEES / NON_RAPPROCHEES_MEULEES
             self.inp_nm.setEnabled(True)
-            nm_min = DB.get_dead_coils_min(end_type_key)
-            if self.inp_nm.value() < nm_min:
-                self.inp_nm.setValue(nm_min)
-            self.inp_nm.setMinimum(nm_min)
+            nm_min_mech = DB.get_dead_coils_min(end_type_key)
+            nm_min_manuf = nm_min_mech + extra
+            # Pas d'incrément : 0.25 pour types meulés (afin de pouvoir choisir des
+            # valeurs comme 2.25, 2.75, 3.25, ...), 0.5 pour les autres
+            self.inp_nm.setSingleStep(0.25 if is_ground else 0.5)
+            self.inp_nm.setMinimum(nm_min_manuf)
+            if self.inp_nm.value() < nm_min_manuf:
+                self.inp_nm.setValue(nm_min_manuf)
+            if is_ground:
+                self.inp_nm.setToolTip(
+                    tr("calc.tooltip_nm_manuf")
+                )
+            else:
+                self.inp_nm.setToolTip(
+                    tr("calc.tooltip_nm_per_side")
+                )
         self._recalc()
     
     def _open_material_dialog(self):
@@ -1490,12 +1605,32 @@ class SpringCalculatorDialog(QDialog):
         is_severe = (stress_key == "severe_dynamic")
         
         nm = self.inp_nm.value()
-        
-        # COUPEES et MEULEES: pas de spires mortes
-        if end_type in ["COUPEES", "MEULEES"]:
-            nm_reel = 0
+
+        # v1.5: deadTurnsQty est désormais la valeur de FABRICATION.
+        # Pour les types meulés, on conserve les +0.25 supplémentaires (qui seront
+        # retirés par meulage). Pour les calculs mécaniques (EN 13906-1), on utilise
+        # nm_mech = nm_manuf - 0.25 sur les types meulés.
+        EXTRA_DEAD_TURNS_270 = 0.25
+        is_ground_type = "MEULEES" in end_type
+        if end_type == "COUPEES":
+            nm_manuf = 0.0       # pas de spires mortes, pas de meulage
+            nm_mech = 0.0
+        elif end_type == "MEULEES":
+            # Pas de spires mortes mécaniques, mais 0.25 tour en fabrication
+            # (appui meulé 270°)
+            nm_manuf = max(nm, EXTRA_DEAD_TURNS_270)
+            nm_mech = 0.0
+        elif is_ground_type:
+            # RAPPROCHEES_MEULEES, NON_RAPPROCHEES_MEULEES
+            nm_manuf = nm
+            nm_mech = max(0.0, nm - EXTRA_DEAD_TURNS_270)
         else:
-            nm_reel = nm
+            # RAPPROCHEES, NON_RAPPROCHEES
+            nm_manuf = nm
+            nm_mech = nm
+
+        # nm_reel = valeur utilisée pour la résolution dimensionnelle mécanique
+        nm_reel = nm_mech
         
         # === CALCUL ITÉRATIF POUR CONVERGER VERS LE DIAMÈTRE CIBLE ===
         # Si le type n'est pas Dm, on doit itérer pour trouver le bon Dm
@@ -1526,7 +1661,7 @@ class SpringCalculatorDialog(QDialog):
             
             # Calcul du diamètre minimum requis (protection contre valeurs négatives)
             if tau_adm_eff > 0 and Dm > 0 and F > 0:
-                val = coef_k * 2.55 * F * Dm / tau_adm_eff
+                val = coef_k * COEF_TAU * F * Dm / tau_adm_eff
                 d_mini = val ** (1/3) if val > 0 else 0
             else:
                 d_mini = 0
@@ -1567,10 +1702,10 @@ class SpringCalculatorDialog(QDialog):
             coef_k = 1.0
             tau_adm_eff = tau_adm
         
-        tau_reel = coef_k * 2.55 * F * Dm / (d ** 3) if d > 0 else 0
+        tau_reel = coef_k * COEF_TAU * F * Dm / (d ** 3) if d > 0 else 0
         # Protection contre valeurs négatives pour d_mini
         if tau_adm_eff > 0 and Dm > 0 and F > 0:
-            val = coef_k * 2.55 * F * Dm / tau_adm_eff
+            val = coef_k * COEF_TAU * F * Dm / tau_adm_eff
             d_mini = val ** (1/3) if val > 0 else 0
         else:
             d_mini = 0
@@ -1597,7 +1732,7 @@ class SpringCalculatorDialog(QDialog):
             else:
                 tau_adm_eff = tau_adm
                 coef_k = 1.0
-            tau_reel = coef_k * 2.55 * F * Dm / (d ** 3) if d > 0 else 0
+            tau_reel = coef_k * COEF_TAU * F * Dm / (d ** 3) if d > 0 else 0
         
         pct_travail = (tau_reel / tau_adm_eff * 100) if tau_adm_eff > 0 else 0
         
@@ -1697,23 +1832,28 @@ class SpringCalculatorDialog(QDialog):
             'meanDiameter': Dm,
             'activeTurnsQty': n,
             'totalTurnsQty': nt,
-            'deadTurnsQty': nm_reel,  # Spires mortes par face
-            
+            # v1.5: deadTurnsQty = valeur de FABRICATION (mécanique + 0.25 par côté
+            # pour les types meulés afin d'obtenir l'appui meulé à 270°)
+            'deadTurnsQty': nm_manuf,  # Spires mortes par face (fabrication)
+
             # Type de diamètre et valeur cible (pour persistance)
             'diameterType': diameter_type,
             'targetDiameter': target_diameter,
-            
+
             # Hauteurs de REPRÉSENTATION (pour les 3 modes)
             'freeLength': L0,         # Mode libre: LCS à L0
             'onLoadHight': H_charge,  # Mode sous charge: LCS à H (valeur utilisateur)
             'minHeight': Lc_max,      # Mode bloc: LCS à Lc_max (valeur utilisateur)
-            
+
             # Hauteurs calculées
+            # v1.5: activeTurnsHight utilise nm_mech (plan d'appui mécanique),
+            # deadTurnsHight utilise nm_manuf (extension totale de l'hélice morte
+            # avant meulage = nm_mech + 0.25 pour les types meulés).
             'solidHeight': Lc_reel,   # Lc réel calculé (pour vérification)
-            'activeTurnsHight': H_charge - 2 * nm_reel * d,
-            'deadTurnsHight': nm_reel * d,
+            'activeTurnsHight': H_charge - 2 * nm_mech * d,
+            'deadTurnsHight': nm_manuf * d,
             'minActiveTurnsHight': n * d,
-            'maxActiveTurnsHight': L0 - 2 * nm_reel * d,
+            'maxActiveTurnsHight': L0 - 2 * nm_mech * d,
             
             # Charge et matériau
             'load': F,
@@ -1754,7 +1894,7 @@ class SpringCalculatorDialog(QDialog):
                 self.inp_Dm.setValue(body.meanDiameter)
             
             if hasattr(body, 'wireDiameter'):
-                self.inp_d.setCurrentText(f"{body.wireDiameter:.2f}")
+                self._select_wire_diameter(body.wireDiameter)
             
             if hasattr(body, 'load'):
                 self.inp_F.setValue(body.load)
@@ -1789,7 +1929,16 @@ class SpringCalculatorDialog(QDialog):
                         break
             
             if hasattr(body, 'deadTurnsQty'):
-                self.inp_nm.setValue(body.deadTurnsQty)  # Correction v1.1: pas de division
+                # v1.5: deadTurnsQty stockée = valeur de FABRICATION (inclut +0.25
+                # par côté pour les types meulés). L'inp_nm affiche aussi la valeur
+                # de fabrication, donc on peut charger directement.
+                # On élargit d'abord la plage pour autoriser l'écriture de la valeur,
+                # la reconfiguration définitive (min/step/decimals) sera effectuée par
+                # _on_end_type_changed lors du recalcul final.
+                self.inp_nm.setDecimals(2)
+                self.inp_nm.setMinimum(0.0)
+                self.inp_nm.setSingleStep(0.25)
+                self.inp_nm.setValue(body.deadTurnsQty)
             
             if hasattr(body, 'leftHanded'):
                 # Trouver l'index correspondant (0=droite, 1=gauche)
@@ -1798,26 +1947,42 @@ class SpringCalculatorDialog(QDialog):
         finally:
             for widget in widgets_to_block:
                 widget.blockSignals(False)
-        
+
+        # v1.5: Après déblocage des signaux, synchroniser la configuration de
+        # l'inp_nm (min/step/enabled/tooltip) selon le type d'extrémité chargé.
+        # Le signal textChanged a été bloqué pendant setCurrentIndex, il faut
+        # donc rappeler _on_end_type_changed manuellement (sans perdre la valeur
+        # de fabrication qui vient d'être chargée).
+        preserved_nm = self.inp_nm.value()
+        self.inp_nm.blockSignals(True)
+        try:
+            self._on_end_type_changed(self.inp_end_type.currentText())
+            # Restaurer la valeur de fabrication chargée (elle peut avoir été
+            # clampée au minimum par _on_end_type_changed)
+            current_min = self.inp_nm.minimum()
+            if preserved_nm >= current_min:
+                self.inp_nm.setValue(preserved_nm)
+        finally:
+            self.inp_nm.blockSignals(False)
+
         # Mettre à jour le type précédent après chargement
         self._previous_diameter_type = self.inp_diameter_type.currentText()
-        
+
         self._recalc()
     
     def _apply_and_close(self):
         """Applique les paramètres au Body et ferme"""
         if not self.current_spring_body:
-            QMessageBox.warning(self, "Erreur", "Aucun ressort associé")
+            QMessageBox.warning(self, tr("common.error"), tr("calc.error_no_spring"))
             return
-        
+
         body = self.current_spring_body
-        
+
         # Vérifier alertes
         if "⚠" in self.lbl_alerts.text():
             reply = QMessageBox.warning(
-                self, "Alertes",
-                f"Des alertes ont été détectées:\n\n{self.lbl_alerts.text()}\n\n"
-                "Appliquer quand même ?",
+                self, tr("calc.alerts_title"),
+                tr("calc.alerts_confirm_msg").format(alerts=self.lbl_alerts.text()),
                 QMsgBoxYes | QMsgBoxNo, QMsgBoxNo
             )
             if reply != QMsgBoxYes:
@@ -1870,7 +2035,7 @@ class SpringCalculatorDialog(QDialog):
             self.accept()
             
         except Exception as e:
-            QMessageBox.critical(self, "Erreur", f"Erreur: {str(e)}")
+            QMessageBox.critical(self, tr("common.error"), tr("calc.error_apply_failed").format(error=str(e)))
     
     def get_results(self):
         """Retourne les résultats calculés"""
@@ -1893,59 +2058,199 @@ class SpringCalculatorDialog(QDialog):
             # Comportement normal pour les autres touches
             super().keyPressEvent(event)
     
+    def _current_wire_diameter_from_index(self):
+        """Diametre de fil correspondant a l'index actuellement selectionne."""
+        i = self.inp_d.currentIndex()
+        if 0 <= i < len(self._all_diameters):
+            return self._all_diameters[i]
+        return self._all_diameters[0] if self._all_diameters else 0.5
+
+    def _select_wire_diameter(self, value):
+        """
+        Selectionne un diametre de fil par son INDEX dans le combo.
+
+        Pourquoi ne jamais utiliser setCurrentText() ici : inp_d est un combo
+        EDITABLE (lineEdit en lecture seule, seulement pour l'alignement a
+        droite). Sur un combo editable, QComboBox.setCurrentText() ne fait que
+        setEditText() : le texte affiche change, mais currentIndex reste sur
+        l'entree precedente. Or Qt reecrit le texte du lineEdit a partir de
+        l'item pointe par currentIndex des que le modele emet dataChanged --
+        ce que fait _filter_diameters() a chaque recalcul en colorant et en
+        (des)activant les entrees. Le champ revenait donc silencieusement a la
+        valeur de l'index fige (4.00 mm, celle de la construction) des le
+        premier recalcul apres chargement d'un ressort existant, et le calcul
+        repartait sur ce diametre errone.
+
+        La valeur est alignee sur le diametre normalise le plus proche : le
+        champ n'est de toute facon pas saisissable, seules les valeurs du
+        catalogue EN 10270 sont selectionnables.
+
+        Retourne True si un diametre du catalogue a ete selectionne.
+        """
+        try:
+            value = float(value)
+        except (TypeError, ValueError):
+            return False
+
+        if not self._all_diameters:
+            return False
+
+        best_i, best_delta = 0, None
+        for i, d in enumerate(self._all_diameters):
+            delta = abs(d - value)
+            if best_delta is None or delta < best_delta:
+                best_i, best_delta = i, delta
+
+        snapped = self._all_diameters[best_i]
+        if abs(snapped - value) > 0.005:
+            App.Console.PrintWarning(
+                "SpringFull: diametre de fil %.3f mm hors catalogue, "
+                "aligne sur %.2f mm.\n" % (value, snapped)
+            )
+
+        self.inp_d.setCurrentIndex(best_i)
+        # setCurrentIndex() ne rafraichit pas le lineEdit si l'index ne change
+        # pas : on force la coherence texte/index dans tous les cas.
+        text = "%.2f" % snapped
+        if self.inp_d.currentText() != text:
+            self.inp_d.setEditText(text)
+        return True
+
     def _filter_diameters(self, d_mini, force_select_minimum=False):
         """
-        Filtre le ComboBox des diamètres pour n'afficher que ceux >= d_mini.
-        Si le diamètre actuel est < d_mini ou si force_select_minimum=True, 
-        sélectionne automatiquement le premier valide (le plus petit >= d_mini).
-        
+        Met à jour la disponibilité des diamètres dans le ComboBox selon d_mini.
+
+        Contrairement à l'ancien comportement (qui retirait les diamètres
+        trop petits de la liste), tous les diamètres standards restent
+        visibles dans la liste déroulante : ceux < d_mini sont affichés en
+        rouge et désactivés (non sélectionnables), ce qui permet à
+        l'utilisateur de voir directement, dans le menu déroulant lui-même,
+        quels diamètres sont incompatibles avec les paramètres actuels - et
+        pas seulement après coup via l'alerte texte.
+
+        Si le diamètre actuellement sélectionné devient incompatible (ou si
+        force_select_minimum=True), sélectionne automatiquement le premier
+        diamètre valide (le plus petit >= d_mini).
+
         Args:
             d_mini: Diamètre minimum calculé
             force_select_minimum: Si True, sélectionne toujours le premier diamètre valide
         """
         if self._updating_diameter:
             return
-        
+
         self._updating_diameter = True
-        
+
         try:
             # Sauvegarder le diamètre actuellement sélectionné
             current_text = self.inp_d.currentText()
             try:
                 current_d = float(current_text)
-            except:
-                current_d = 4.0
-            
+            except (TypeError, ValueError):
+                current_d = self._current_wire_diameter_from_index()
+
             # Bloquer les signaux pendant la mise à jour
             self.inp_d.blockSignals(True)
-            
-            # Vider et repeupler avec les diamètres >= d_mini
-            self.inp_d.clear()
-            valid_diameters = [d for d in self._all_diameters if d >= d_mini]
-            
-            # S'assurer qu'il y a au moins un diamètre
-            if not valid_diameters:
-                valid_diameters = self._all_diameters[-5:] if len(self._all_diameters) >= 5 else self._all_diameters
-            
-            self.inp_d.addItems([f"{d:.2f}" for d in valid_diameters])
-            
-            # Si force_select_minimum, toujours sélectionner le premier (le plus petit valide)
-            if force_select_minimum:
-                self.inp_d.setCurrentIndex(0)
-            # Sinon, restaurer la sélection si le diamètre actuel est valide
-            elif current_d >= d_mini and current_d in valid_diameters:
-                # Trouver l'index exact
-                try:
-                    idx = valid_diameters.index(current_d)
-                    self.inp_d.setCurrentIndex(idx)
-                except ValueError:
-                    # Chercher le plus proche >= d_mini
-                    self.inp_d.setCurrentIndex(0)
-            else:
-                # Diamètre actuel invalide: sélectionner le premier valide (le plus petit >= d_mini)
-                self.inp_d.setCurrentIndex(0)
-            
+
+            # Resynchroniser l'index sur le texte affiché AVANT de toucher
+            # au modèle : sur un combo éditable, Qt réécrit le texte du
+            # lineEdit à partir de l'item pointé par currentIndex dès que le
+            # modèle émet dataChanged (ce que font les setBackground /
+            # setFlags ci-dessous). Un index désynchronisé ramènerait donc
+            # silencieusement le champ sur une autre valeur.
+            idx_text = self.inp_d.findText(current_text)
+            if idx_text >= 0 and self.inp_d.currentIndex() != idx_text:
+                self.inp_d.setCurrentIndex(idx_text)
+
+            model = self.inp_d.model()
+            warn_bg = QBrush(QColor(get_style('ALERT_WARN_BG')))
+            warn_fg = QBrush(QColor(get_style('ALERT_WARN_FG')))
+
+            any_valid = any(d >= d_mini for d in self._all_diameters)
+            first_valid_index = None
+
+            # Colorer/activer chaque entrée sans reconstruire la liste : les
+            # diamètres trop petits restent visibles (en rouge) plutôt que
+            # de disparaître, et ne sont désactivés que s'il existe au moins
+            # une alternative valide (sinon, mieux vaut laisser choisir le
+            # "moins pire" possible plutôt que bloquer tout le champ).
+            for i, d in enumerate(self._all_diameters):
+                item = model.item(i)
+                if item is None:
+                    continue
+                meets_requirement = d >= d_mini
+                if meets_requirement:
+                    if first_valid_index is None:
+                        first_valid_index = i
+                    # setData(None, role) efface reellement le role (contrairement a
+                    # setBackground/setForeground(QBrush()), qui stockerait un brush
+                    # noir valide et casserait la couleur de texte en theme sombre).
+                    item.setData(None, Qt.BackgroundRole)
+                    item.setData(None, Qt.ForegroundRole)
+                    item.setFlags(item.flags() | Qt.ItemIsEnabled)
+                    item.setToolTip("")
+                else:
+                    item.setBackground(warn_bg)
+                    item.setForeground(warn_fg)
+                    item.setToolTip(tr("calc.diameter_too_small").format(d_mini=d_mini))
+                    if any_valid:
+                        item.setFlags(item.flags() & ~Qt.ItemIsEnabled)
+                    else:
+                        item.setFlags(item.flags() | Qt.ItemIsEnabled)
+
+            # Valeur resélectionnée automatiquement (hors choix explicite de
+            # l'utilisateur sur ce champ) - None si la sélection actuelle
+            # reste valide telle quelle. Utilisé ensuite pour donner un
+            # retour visuel (voir _flash_diameter_auto_adjust).
+            auto_adjusted_value = None
+
+            if first_valid_index is not None:
+                # Si force_select_minimum, toujours sélectionner le premier (le plus petit valide)
+                if force_select_minimum:
+                    if self.inp_d.currentIndex() != first_valid_index:
+                        self.inp_d.setCurrentIndex(first_valid_index)
+                        auto_adjusted_value = self._all_diameters[first_valid_index]
+                # Sinon, ne changer la sélection que si le diamètre actuel est devenu invalide
+                elif current_d < d_mini:
+                    self.inp_d.setCurrentIndex(first_valid_index)
+                    auto_adjusted_value = self._all_diameters[first_valid_index]
+                # else: le diamètre actuel reste valide, on ne touche pas à la sélection
+            # else: aucun diamètre standard n'atteint d_mini - on laisse la
+            # sélection courante telle quelle (l'alerte texte existante
+            # avertit déjà l'utilisateur dans ce cas).
+
+            # Cohérence finale texte/index (setCurrentIndex ne rafraîchit pas
+            # le lineEdit quand l'index ne change pas).
+            sel = self.inp_d.currentIndex()
+            if 0 <= sel < len(self._all_diameters):
+                expected = "%.2f" % self._all_diameters[sel]
+                if self.inp_d.currentText() != expected:
+                    self.inp_d.setEditText(expected)
+
             self.inp_d.blockSignals(False)
-            
+
+            # Retour visuel: le champ vient de changer de valeur sans action
+            # explicite de l'utilisateur dessus (un autre paramètre a rendu
+            # son ancienne valeur invalide) - le signaler brièvement plutôt
+            # que de le laisser changer silencieusement.
+            if auto_adjusted_value is not None and abs(auto_adjusted_value - current_d) > 0.001:
+                self._flash_diameter_auto_adjust(auto_adjusted_value)
+
         finally:
             self._updating_diameter = False
+
+    def _flash_diameter_auto_adjust(self, new_value):
+        """
+        Signale brièvement que le diamètre de fil a été resélectionné
+        automatiquement (ex: devenu invalide suite à la modification d'un
+        autre paramètre), au lieu de laisser le champ changer sans aucun
+        retour visuel. Flash de fond temporaire + info-bulle explicative.
+        """
+        try:
+            self.inp_d.setToolTip(tr("calc.diameter_auto_adjusted").format(d=new_value))
+            normal_style = get_style("COMBO")
+            flash_style = normal_style + f"\nQComboBox {{ background-color: {get_style('ALERT_WARN_BG')}; }}"
+            self.inp_d.setStyleSheet(flash_style)
+            QTimer.singleShot(1200, lambda: self.inp_d.setStyleSheet(normal_style))
+        except Exception:
+            pass

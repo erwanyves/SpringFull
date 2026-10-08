@@ -1,0 +1,18 @@
+# Fins de ligne figées : LF dans le dépôt ET à l'extraction, sur tous les postes.
+* text=auto eol=lf
+*.FCStd binary
+*.FCMacro text eol=lf
+*.py text eol=lf
+*.json text eol=lf
+*.md text eol=lf
+*.txt text eol=lf
+*.svg text eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.docx binary
+*.odt binary
+*.ods binary
+*.pdf binary
+*.mp4 binary
+*.gif binary

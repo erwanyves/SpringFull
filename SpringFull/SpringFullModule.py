@@ -1,3 +1,4 @@
+# Chemin : SpringFullModule.py
 # -*- coding: utf-8 -*-
 """
 SpringFullModule - Classe Spring définissant la géométrie complète du ressort
@@ -13,7 +14,7 @@ Version: 1.2 - Corrections:
 """
 
 __author__ = "Yves Guillou"
-__licence__ = "GPL"
+__licence__ = "LGPL-2.1"
 
 import FreeCAD as App
 import FreeCADGui as Gui
@@ -246,15 +247,23 @@ class Spring:
         
         # Supprimer les duplicats
         duplicates = duplicates_top + duplicates_bottom
-        doc = App.ActiveDocument
+        # Le document de la PIECE, pas le document actif : meme defaut que
+        # rebuildSpring() (13/09/2026). En assemblage lie, les LCS en double
+        # vivent dans le document source, et les chercher dans l'assemblage
+        # echoue silencieusement -- d'ou des Local_Top/Local_Bottom en double
+        # qui s'accumulent. En mono-document, c'est le meme objet.
+        doc = self.piece.Document
         
         for obj in duplicates:
+            # Nom releve AVANT la suppression : ensuite le mandataire est mort
+            # et `obj.Name` leve ReferenceError (13/09/2026).
+            _nom = getattr(obj, 'Name', '?')
             try:
-                App.Console.PrintMessage(f"[SpringFull] {tr('console.lcs_duplicate_deleted').format(name=obj.Name)}\n")
+                App.Console.PrintMessage(f"[SpringFull] {tr('console.lcs_duplicate_deleted').format(name=_nom)}\n")
                 self.piece.removeObject(obj)
-                doc.removeObject(obj.Name)
+                doc.removeObject(_nom)
             except Exception as e:
-                App.Console.PrintWarning(f"[SpringFull] {tr('console.error_lcs_delete').format(name=obj.Name, error=e)}\n")
+                App.Console.PrintWarning(f"[SpringFull] {tr('console.error_lcs_delete').format(name=_nom, error=e)}\n")
         
         if duplicates:
             App.Console.PrintMessage(f"[SpringFull] {tr('console.lcs_duplicates_deleted').format(count=len(duplicates))}\n")
@@ -510,11 +519,18 @@ class Spring:
         if not main_helix_obj.Shape or not main_helix_obj.Shape.Faces:
             raise Exception("MainHelix Shape non disponible")
         
-        # CORRECTION v1.3: Créer des hélices mortes SEULEMENT si deadTurnsQty > 0
-        # Pour COUPEES et MEULEES (nm=0), pas d'hélices mortes
-        # Pour RAPPROCHEES et RAPPROCHEES_MEULEES (nm>0), créer les hélices mortes
-        # Les Pockets (dans Limits) coupent les extrémités pour les types meulés
-        
+        # v1.5: data.deadTurnsQty est la valeur de FABRICATION (inclut +0.25
+        # tour par côté pour les types meulés afin d'obtenir un appui meulé à
+        # 270° au lieu de 180°).
+        # - COUPEES:                deadTurnsQty = 0           → pas d'hélices mortes
+        # - MEULEES:                deadTurnsQty = 0.25        → hélices mortes de 0.25 tour
+        #                           (la partie sous Z=0 sera retirée par le Pocket)
+        # - RAPPROCHEES:            deadTurnsQty = nm          → hélices mortes de nm tours
+        # - RAPPROCHEES_MEULEES:    deadTurnsQty = nm + 0.25   → hélices mortes étendues
+        #                           (la partie qui dépasse sera retirée par le Pocket)
+        # - NON_RAPPROCHEES*:       idem RAPPROCHEES*
+        # Les Pockets (dans Limits) coupent les extrémités pour les types meulés.
+
         if data.deadTurnsQty > 0.0001:
             num_faces = len(main_helix_obj.Shape.Faces)
             
