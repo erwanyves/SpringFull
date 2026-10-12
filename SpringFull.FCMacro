@@ -15,8 +15,18 @@ import sys
 macro_dir = os.path.dirname(os.path.abspath(__file__))
 springfull_dir = os.path.join(macro_dir, 'SpringFull')
 
-if springfull_dir not in sys.path:
-    sys.path.insert(0, springfull_dir)
+# Dossier Macro EN TETE de sys.path, paquet purge du cache (11/10/2026).
+# La macro importe le paquet `SpringFull.*`. Depuis FreeCAD 1.2 / 26.x, le
+# dossier macro PAR VERSION (...\FreeCAD\v26-3\Macro) est aussi sur sys.path,
+# AVANT ce dossier-ci, et la migration y a recopie une ANCIENNE version de
+# SpringFull : c'est elle qui etait importee (ImportError showStatusMessage).
+# Meme manoeuvre que les lanceurs ORing, SmartFinder et Swaging.
+for _p in (springfull_dir, macro_dir):
+    while _p in sys.path:
+        sys.path.remove(_p)
+    sys.path.insert(0, _p)
+for _nom in [n for n in sys.modules if n.startswith('SpringFull')]:
+    del sys.modules[_nom]
 
 # Lancer la macro principale
 # encoding EXPLICITE (14/09/2026) : sans lui, `open()` prend l'encodage
